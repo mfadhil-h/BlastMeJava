@@ -2,18 +2,15 @@ package com.blastme.messaging.neosmppserver;
 
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
+import java.util.Iterator;
 
+import com.blastme.messaging.toolpooler.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 import org.postgresql.util.Base64;
 
-import com.blastme.messaging.toolpooler.ClientBalancePooler;
-import com.blastme.messaging.toolpooler.ClientPropertyPooler;
-import com.blastme.messaging.toolpooler.LoggingPooler;
-import com.blastme.messaging.toolpooler.RabbitMQPooler;
-import com.blastme.messaging.toolpooler.RedisPooler;
-import com.blastme.messaging.toolpooler.SMPPEnquiryLinkPooler;
-import com.blastme.messaging.toolpooler.SMSTransactionOperationPooler;
-import com.blastme.messaging.toolpooler.Tool;
 import com.cloudhopper.smpp.SmppConstants;
 import com.cloudhopper.smpp.SmppSession;
 import com.cloudhopper.smpp.impl.DefaultSmppSessionHandler;
@@ -49,15 +46,19 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 	private ClientPropertyPooler clientPropertyPooler;
 	private ClientBalancePooler clientBalancePooler;
 	private SMSTransactionOperationPooler smsTransactionOperationPooler;
+	private RouteSMSPooler routeSMSPooler;
 	private RabbitMQPooler rabbitMqPooler;
 	private Connection rabbitMqConnection;
 	private RedisPooler redisPooler;
 	private RedisCommands<String, String> redisCommand;
+	private final Gson gson =  new GsonBuilder().serializeSpecialFloatingPointValues().serializeNulls().create();
 
-	public BlastMeNeoSMPPSessionHandler(SmppSession session, String theBlastmeSessionId, String theRemoteIpAddress, String theClientId, Tool theTool, 
-			SMPPEnquiryLinkPooler theSmppEnquiryLinkPooler, ClientPropertyPooler theClientPropertyPooler, 
-			ClientBalancePooler theClientBalancePooler, SMSTransactionOperationPooler theSmsTransactionOperationPooler,
-			RabbitMQPooler theRabbitMqPooler, Connection theRabbitMqConnection, RedisPooler theRedisPooler, Logger theLogger) {
+	public BlastMeNeoSMPPSessionHandler(SmppSession session, String theBlastmeSessionId, String theRemoteIpAddress,
+			String theClientId, Tool theTool, SMPPEnquiryLinkPooler theSmppEnquiryLinkPooler,
+			ClientPropertyPooler theClientPropertyPooler, ClientBalancePooler theClientBalancePooler,
+			SMSTransactionOperationPooler theSmsTransactionOperationPooler, RouteSMSPooler routeSMSPooler,
+			RabbitMQPooler theRabbitMqPooler, Connection theRabbitMqConnection, RedisPooler theRedisPooler,
+			Logger theLogger) {
 		this.sessionRef = new WeakReference<SmppSession>(session); 
 		logger = theLogger;
 		
@@ -71,6 +72,7 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 		this.clientPropertyPooler = theClientPropertyPooler;
 		this.clientBalancePooler = theClientBalancePooler;
 		this.smsTransactionOperationPooler = theSmsTransactionOperationPooler;
+		this.routeSMSPooler = routeSMSPooler;
 		this.rabbitMqPooler = theRabbitMqPooler;
 		this.rabbitMqConnection = theRabbitMqConnection;
 		this.redisPooler = theRedisPooler;
@@ -241,6 +243,11 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
     public PduResponse firePduRequestReceived(@SuppressWarnings("rawtypes") PduRequest pduRequest) {
         SmppSession session = sessionRef.get();
 
+		LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived",
+				false, false, true, "", this.blastmeSessionId + " - pduRequest: " + pduRequest.toString(), null);
+		LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived",
+				false, false, true, "", this.blastmeSessionId + " - json pduRequest: " + gson.toJson(pduRequest), null);
+
         // Default value of response
         PduResponse response = pduRequest.createResponse();
 
@@ -265,6 +272,9 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 			try {
 				LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived", false, false, true, "", 
 						this.blastmeSessionId + " - " + session.getConfiguration().getSystemId() + " - PDU Request: CMD_ID_SUBMIT_SMS.", null);
+
+				LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived",
+						false, false, true, "", this.blastmeSessionId + " - json pduRequest: " + gson.toJson(pduRequest), null);
 				
 				this.smppEnquiryLinkPooler.logEnquiryLink(clientId, this.blastmeSessionId, "SUBMIT_SM");
 
@@ -280,14 +290,38 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 				boolean isUdh = SmppUtil.isUserDataHeaderIndicatorEnabled(mt.getEsmClass());
 				LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived", false, false, true, "", 
 						this.blastmeSessionId + " - " + session.getConfiguration().getSystemId() + " - isUDH (multipart sms): " + isUdh, null);
-				
-				if (isUdh) {
+
+				String [] vendorWhatsapp = {"ARAN20230314", "ARTP20230319", "ARTP20230126", "ARTP20230207",
+						"NATH20230316", "PAIA20220704", "PATP20220704", "PAXT20220704", "SHST20230214", "WAFE21062321",
+						"WATI20220701"};
+				Address mtSourceAddress = mt.getSourceAddress();
+				String clientSenderId = mtSourceAddress.getAddress().trim();
+				Address mtDestinationAddress = mt.getDestAddress();
+				String msisdn = mtDestinationAddress.getAddress().trim();
+
+				JSONObject jsonMsisdn = isPrefixValid(msisdn);
+				String telecomId = jsonMsisdn.getString("telecomId");
+				LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived",
+						false, false, true, "", this.blastmeSessionId + " - " +
+								session.getConfiguration().getSystemId() + " - routingId: " + clientSenderId + "-" +
+								clientId  + "-" + session.getConfiguration().getSystemId() + "-" + telecomId, null);
+
+				String vendorId = this.routeSMSPooler.getRoutedVendorId(this.blastmeSessionId,
+						clientSenderId + "-" + clientId  + "-" + session.getConfiguration().getSystemId(), telecomId.trim());
+				LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived",
+						false, false, true, "", this.blastmeSessionId + " - " +
+								session.getConfiguration().getSystemId() + " - vendorId: " + vendorId, null);
+
+				boolean found = Arrays.asList(vendorWhatsapp).contains(vendorId);
+				LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived",
+						false, false, true, "", this.blastmeSessionId + " - " +
+								session.getConfiguration().getSystemId() + " - found: " + String.valueOf(found), null);
+
+					if (isUdh && !found) {
+						LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived",
+								false, false, true, "", this.blastmeSessionId + " - " +
+										session.getConfiguration().getSystemId() + " - isUdh: " + String.valueOf(isUdh)  + " - found: " + String.valueOf(found), null);
 					// Handle multipart sms
-	                Address mtSourceAddress = mt.getSourceAddress();
-	                String clientSenderId = mtSourceAddress.getAddress().trim();
-	                		
-	                Address mtDestinationAddress = mt.getDestAddress();
-	                String msisdn = mtDestinationAddress.getAddress().trim();
 
 					byte[] userDataHeader = GsmUtil.getShortMessageUserDataHeader(mt.getShortMessage());
 					
@@ -317,7 +351,7 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 	    			
 	    			// Combine all shortMessage
 	    			byte[] allSMSMessage = combineMessage(clientSenderId, msisdn, thisMessageId, thisTotalMessages, thisMessageNumber, shortMessage);
-					
+
 	    			if (allSMSMessage == null || allSMSMessage.length == 0) {
 	    				// NULL, no complete yet the combination process
 	    				// Do not process anything
@@ -340,13 +374,11 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 	                
 	                response = submitSmResp;		    				
 				} else {
-	                Address mtSourceAddress = mt.getSourceAddress();
-	                String clientSenderId = mtSourceAddress.getAddress().trim();
-	                		
-	                Address mtDestinationAddress = mt.getDestAddress();
-	                String msisdn = mtDestinationAddress.getAddress().trim();
-	                
-	                byte dataCoding = mt.getDataCoding();
+						LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived",
+								false, false, true, "", this.blastmeSessionId + " - " +
+										session.getConfiguration().getSystemId() + " - isUdh: " + String.valueOf(isUdh)  + " - found: " + String.valueOf(found), null);
+
+					byte dataCoding = mt.getDataCoding();
 	                byte[] shortMessage = mt.getShortMessage();
 
 	                if (shortMessage.length == 0) {
@@ -390,4 +422,23 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 
         return response;
     }
+
+	private JSONObject isPrefixValid(String msisdn){
+		JSONObject jsonPrefix = new JSONObject();
+		jsonPrefix.put("isValid", false);
+
+		Iterator<String> keys = TelecomPrefixPooler.jsonPrefixProperty.keys();
+
+		while(keys.hasNext()){
+			String key = keys.next();
+			if(msisdn.startsWith(key)){
+				jsonPrefix.put("isValid", true);
+				jsonPrefix.put("prefix", TelecomPrefixPooler.jsonPrefixProperty.getJSONObject(key).get("prefix"));
+				jsonPrefix.put("telecomId", TelecomPrefixPooler.jsonPrefixProperty.getJSONObject(key).get("telecomId"));
+				jsonPrefix.put("countryCode", TelecomPrefixPooler.jsonPrefixProperty.getJSONObject(key).get("countryCode"));
+			}
+		}
+
+		return jsonPrefix;
+	}
 }

@@ -151,6 +151,7 @@ public class BlastMeNeoSMPPServer {
 		private ClientBalancePooler clientBalancePooler;
 		private SMSTransactionOperationPooler smsTransactionOperationPooler;
 		private ClientPropertyPooler clientPropertyPooler;
+		private RouteSMSPooler routeSMSPooler;
 		private RabbitMQPooler rabbitPooler;
 		private Connection rabbitConnection;
 
@@ -181,6 +182,9 @@ public class BlastMeNeoSMPPServer {
         		
         		rabbitPooler = new RabbitMQPooler();
         		System.out.println("RabbitMQPooler is initiated.");
+
+				routeSMSPooler = new RouteSMSPooler();
+				System.out.println("RouteSMSPooler is initiated.");
         		
         		rabbitConnection = rabbitPooler.getConnection();
         		System.out.println("RabbitMQConnection is initiated."); 
@@ -308,7 +312,7 @@ public class BlastMeNeoSMPPServer {
 					clientId + " -> blastmeSessionId: " + blastmeSessionId + ". Session NAME: " + session.getConfiguration().getName(), null);				
             
 			session.serverReady(new BlastMeNeoSMPPSessionHandler(session, blastmeSessionId, remoteIpAddress, clientId, tool, smppEnquiryLinkPooler, clientPropertyPooler, 
-					clientBalancePooler, smsTransactionOperationPooler, rabbitPooler, rabbitConnection, redisPooler, logger));
+					clientBalancePooler, smsTransactionOperationPooler, routeSMSPooler, rabbitPooler, rabbitConnection, redisPooler, logger));
 		}
 
 		@Override

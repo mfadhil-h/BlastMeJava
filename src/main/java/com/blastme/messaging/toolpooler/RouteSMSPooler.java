@@ -101,12 +101,17 @@ public class RouteSMSPooler {
 	}
 	
 	public String getRoutedVendorId(String messageId, String clientSenderIdId, String telecomId){
+		LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived", false, false, true, "",
+				 " - clientSenderIdId: " + clientSenderIdId + "-telecomId:" + telecomId, null);
 		String routedVendorId = "";
 		
 		// Check from jsonRouteSMSProperty
 		String routeId = clientSenderIdId.trim() + "-" + telecomId.trim();
 		if(jsonRouteSMSProperty.has(routeId)){
-			routedVendorId = jsonRouteSMSProperty.getString("vendorId");
+			LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived", false, false, true, "",
+					" - clientSenderIdId: " + clientSenderIdId + "-telecomId:" + telecomId, null);
+			JSONObject routing = jsonRouteSMSProperty.getJSONObject(routeId);
+			routedVendorId = routing.getString("vendorId");
 		}
 		
 		return routedVendorId;
