@@ -1,12 +1,15 @@
 package com.blastme.messaging.neosmppserver;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import com.blastme.messaging.toolpooler.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.postgresql.util.Base64;
@@ -167,8 +170,20 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 		return theCharSet;
 	}
 	
-    private byte[] combineMessage(String origin, String destination, int messageId, int totalMessage, int messageNumber, byte[] shortMessagePart) {
+    private HashMap<String, String> combineMessage(String origin, String destination, String messageId, int byteId, int totalMessageCount, int currentCount, byte[] shortMessagePart) {
     	byte[] combinedMessage = new byte[] {};
+		HashMap<String, String> result = new HashMap<String, String>();
+
+		if (currentCount > 1) {
+			String redisKeyIn = "multipartsms-" + origin + "-" + destination + "-" + byteId + "-" + totalMessageCount + "-" + (currentCount-1);
+
+			String jsonRedisValCombine = redisPooler.redisGet(redisCommand, redisKeyIn);
+			System.out.println("getting first messageID redisKeyIn: " + redisKeyIn + ". jsonRedisValCombine: " + jsonRedisValCombine);
+			Type type = new TypeToken<HashMap<String, String>>(){}.getType();
+			HashMap<String, String> mapRedisValCombine = gson.fromJson(jsonRedisValCombine, type);
+			messageId =  mapRedisValCombine.get("first_message_id");
+			System.out.println("getting first messageID messageId: " + messageId + ".");
+		}
     	
     	int expirySeconds = 24 * 60 * 60;
     	
@@ -176,49 +191,59 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
     	String encodedByte = Base64.encodeBytes(shortMessagePart);
     	
     	// Tulis ke redis
-    	String redisKey = "multipartsms-" + origin + "-" + destination + "-" + messageId + "-" + totalMessage + "-" + messageNumber;
-    	String redisVal = encodedByte;
-    	
-    	redisPooler.redisSetWithExpiry(redisCommand, redisKey, redisVal, expirySeconds);
+    	String redisKey = "multipartsms-" + origin + "-" + destination + "-" + byteId + "-" + totalMessageCount + "-" + currentCount;
+//    	String redisVal = encodedByte;
+
+		HashMap<String, String> mapRedisVal = new HashMap<String, String>();
+		mapRedisVal.put("encoded_byte", encodedByte);
+		mapRedisVal.put("first_message_id", messageId);
+
+		String jsonRedisVal = gson.toJson(mapRedisVal);
+
+    	redisPooler.redisSetWithExpiry(redisCommand, redisKey, jsonRedisVal, expirySeconds);
 
     	// Check if all messages are already in redis
-    	boolean isComplete = false;
-    	boolean wasExist = false;
+    	boolean isComplete = (totalMessageCount==currentCount);
+//    	boolean wasExist = false;
     	
-    	System.out.println("isComplete: " + isComplete);        	
-    	for (int x = 1; x <= totalMessage; x++) {
-    		System.out.println("x: " + x);
-    		
-        	String redisKeyIn = "multipartsms-" + origin + "-" + destination + "-" + messageId + "-" + totalMessage + "-" + x;
-        	String redisValIn = redisPooler.redisGet(redisCommand, redisKeyIn);
-        	
-        	if (redisValIn == null) {
-            	System.out.println(x + ".redisKeyIn: " + redisKeyIn + ", redisValIn IS NULL, DO BREAK!");
-            	isComplete = false;
-            	wasExist = false;
-            	break;
-        	} else {
-            	System.out.println(x + ". redisKeyIn: " + redisKeyIn + ", redisValIn: " + redisValIn); 
-
-            	// Yang exist sebelumnya harus true, dan x == totalMessage dan redisValIn bukan NILL
-            	if (x == totalMessage && wasExist == true) {
-            		isComplete = true;
-            	}
-            	wasExist = true;
-            	
-            	System.out.println(x + "wasExist: " + wasExist + ", isCOmplete: " + isComplete); 
-        	}
-    	}
+    	System.out.println("isComplete: " + isComplete);
+//    	for (int x = 1; x <= totalMessage; x++) {
+//    		System.out.println("x: " + x);
+//
+//        	String redisKeyIn = "multipartsms-" + origin + "-" + destination + "-" + messageId + "-" + totalMessage + "-" + x;
+//        	String redisValIn = redisPooler.redisGet(redisCommand, redisKeyIn);
+//
+//        	if (redisValIn == null) {
+//            	System.out.println(x + ".redisKeyIn: " + redisKeyIn + ", redisValIn IS NULL, DO BREAK!");
+//            	isComplete = false;
+//            	wasExist = false;
+//            	break;
+//        	} else {
+//            	System.out.println(x + ". redisKeyIn: " + redisKeyIn + ", redisValIn: " + redisValIn);
+//				System.out.println(x + ". redisKeyIn: " + redisKeyIn + ", redisValIn: " + redisValIn);
+//
+//				// Yang exist sebelumnya harus true, dan x == totalMessage dan redisValIn bukan NILL
+//            	if (x == totalMessage && wasExist == true) {
+//            		isComplete = true;
+//            	}
+//            	wasExist = true;
+//
+//            	System.out.println(x + ". wasExist: " + wasExist + ", isCOmplete: " + isComplete);
+//        	}
+//    	}
     	
     	// If complete, join the message
     	System.out.println("Checking final ISCOMPLETE: " + isComplete);
-    	if (isComplete == true) {            	
-        	for (int x = 1; x <= totalMessage; x++) {
-            	String redisKeyIn = "multipartsms-" + origin + "-" + destination + "-" + messageId + "-" + totalMessage + "-" + x;
-            	String redisValIn = redisPooler.redisGet(redisCommand, redisKeyIn);
-            	System.out.println(x + ". redisKeyIn: " + redisKeyIn + ". redisValIn: " + redisValIn);
-            	
-            	byte[] redisValByte = Base64.decode(redisValIn);
+    	if (isComplete) {
+        	for (int x = 1; x <= totalMessageCount; x++) {
+            	String redisKeyIn = "multipartsms-" + origin + "-" + destination + "-" + byteId + "-" + totalMessageCount + "-" + x;
+
+            	String jsonRedisValCombine = redisPooler.redisGet(redisCommand, redisKeyIn);
+            	System.out.println(x + ". redisKeyIn: " + redisKeyIn + ". jsonRedisValCombine: " + jsonRedisValCombine);
+				Type type = new TypeToken<HashMap<String, String>>(){}.getType();
+				HashMap<String, String> mapRedisValCombine = gson.fromJson(jsonRedisValCombine, type);
+				String encodedByteRedis = mapRedisValCombine.get("encoded_byte");
+            	byte[] redisValByte = Base64.decode(encodedByteRedis);
             	System.out.println(x + ". redisValByte: " + Arrays.toString(redisValByte));
 
             	System.out.println(x + ". combinedMessage: " + Arrays.toString(combinedMessage) + ", redisValByte: " + Arrays.toString(redisValByte));
@@ -232,11 +257,14 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
             	
             	combinedMessage = xByte; 
         	}
+			encodedByte = Base64.encodeBytes(combinedMessage);
     	} else {
     		// Do nothing
     	}
+		result.put("encoded_byte", encodedByte);
+		result.put("first_message_id", messageId);
     	
-    	return combinedMessage; 
+    	return result;
     }
     
    
@@ -291,43 +319,24 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 				LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived", false, false, true, "", 
 						this.blastmeSessionId + " - " + session.getConfiguration().getSystemId() + " - isUDH (multipart sms): " + isUdh, null);
 
-				String [] vendorWhatsapp = {"ARAN20230314", "ARTP20230319", "ARTP20230126", "ARTP20230207",
-						"NATH20230316", "PAIA20220704", "PATP20220704", "PAXT20220704", "SHST20230214", "WAFE21062321",
-						"WATI20220701"};
 				Address mtSourceAddress = mt.getSourceAddress();
 				String clientSenderId = mtSourceAddress.getAddress().trim();
 				Address mtDestinationAddress = mt.getDestAddress();
 				String msisdn = mtDestinationAddress.getAddress().trim();
 
-				JSONObject jsonMsisdn = isPrefixValid(msisdn);
-				String telecomId = jsonMsisdn.getString("telecomId");
-				LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived",
-						false, false, true, "", this.blastmeSessionId + " - " +
-								session.getConfiguration().getSystemId() + " - routingId: " + clientSenderId + "-" +
-								clientId  + "-" + session.getConfiguration().getSystemId() + "-" + telecomId, null);
-
-				String vendorId = this.routeSMSPooler.getRoutedVendorId(this.blastmeSessionId,
-						clientSenderId + "-" + clientId  + "-" + session.getConfiguration().getSystemId(), telecomId.trim());
-				LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived",
-						false, false, true, "", this.blastmeSessionId + " - " +
-								session.getConfiguration().getSystemId() + " - vendorId: " + vendorId, null);
-
-				boolean found = Arrays.asList(vendorWhatsapp).contains(vendorId);
-				LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived",
-						false, false, true, "", this.blastmeSessionId + " - " +
-								session.getConfiguration().getSystemId() + " - found: " + String.valueOf(found), null);
-
-					if (isUdh && !found) {
-						LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived",
-								false, false, true, "", this.blastmeSessionId + " - " +
-										session.getConfiguration().getSystemId() + " - isUdh: " + String.valueOf(isUdh)  + " - found: " + String.valueOf(found), null);
+				if (isUdh) {
 					// Handle multipart sms
 
 					byte[] userDataHeader = GsmUtil.getShortMessageUserDataHeader(mt.getShortMessage());
-					
-					int thisMessageId = userDataHeader[3] & 0xff;
+
+					int byteId = userDataHeader[3] & 0xff;
 					int thisTotalMessages = userDataHeader[4] & 0xff;
-					int thisMessageNumber = userDataHeader[5] & 0xff;
+					int maxMessageCount = userDataHeader[5] & 0xff;
+					int currentMessageCount = userDataHeader[6] & 0xff;
+					LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived", false, false, true, "",
+							this.blastmeSessionId + " - " + session.getConfiguration().getSystemId() +
+									" - currentMessageCount: " + currentMessageCount+
+									" - byteId: " + byteId+" - thisTotalMessages: " + thisTotalMessages+" - maxMessageCount: " + maxMessageCount, null);
 					
 	                byte dataCoding = mt.getDataCoding();
 					byte[] shortMessage = GsmUtil.getShortMessageUserData(mt.getShortMessage());
@@ -347,20 +356,24 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 //	    			}
 	    			
 	    			String theSMSPart = CharsetUtil.decode(shortMessage, theCharset);						
-							
+					LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived", false, false, true, "",
+							this.blastmeSessionId + " - " + session.getConfiguration().getSystemId() + " - theSMSPart: " + theSMSPart+ " - theSMSPart length: " + theSMSPart.length(), null);
+
 	    			
 	    			// Combine all shortMessage
-	    			byte[] allSMSMessage = combineMessage(clientSenderId, msisdn, thisMessageId, thisTotalMessages, thisMessageNumber, shortMessage);
+					HashMap<String, String> result = combineMessage(clientSenderId, msisdn, messageId, byteId, maxMessageCount, currentMessageCount, shortMessage);
+	    			byte[] allSMSMessage = Base64.decode(result.get("encoded_byte"));
+					messageId = result.get("first_message_id");
 
-	    			if (allSMSMessage == null || allSMSMessage.length == 0) {
-	    				// NULL, no complete yet the combination process
-	    				// Do not process anything
-	    			} else {
+	    			if (maxMessageCount == currentMessageCount && allSMSMessage.length != 0) {
+//	    				// NULL, no complete yet the combination process
+//	    				// Do not process anything
+//	    			} else {
 	    				// Complete the combination process
 		                // Run thread smppIncomingTrxProcessor
 	    				LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived", false, false, true, messageId, 
-		    					"Incoming sms is with UDH. The messageId: " + thisMessageId + ", thisTotalMessages: " + thisTotalMessages + ", thisMessageNumber: " +
-		    					thisMessageNumber + ", thisSMS: " + theSMSPart, null);	
+		    					"Incoming sms is with UDH. The byteId: " + byteId + ", thisTotalMessages: " + thisTotalMessages + ", thisMessageNumber: " +
+		    					maxMessageCount + ", thisSMS: " + theSMSPart, null);
 	    				
 		                Thread incomingTrxProcessor = new Thread(new BlastmeNeoSMPPIncomingTrxProcessor(messageId, systemId, remoteIpAddress, clientSenderId, msisdn, allSMSMessage, 
 		                		dataCoding, clientId, mtSourceAddress, mtDestinationAddress, clientPropertyPooler, clientBalancePooler, smsTransactionOperationPooler, rabbitMqPooler, 
@@ -374,9 +387,6 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 	                
 	                response = submitSmResp;		    				
 				} else {
-						LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived",
-								false, false, true, "", this.blastmeSessionId + " - " +
-										session.getConfiguration().getSystemId() + " - isUdh: " + String.valueOf(isUdh)  + " - found: " + String.valueOf(found), null);
 
 					byte dataCoding = mt.getDataCoding();
 	                byte[] shortMessage = mt.getShortMessage();
