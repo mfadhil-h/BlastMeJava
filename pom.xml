@@ -3,11 +3,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.blastme</groupId>
-  <artifactId>messaging</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <artifactId>BlastMe</artifactId>
+  <version>3.13</version>
   <packaging>jar</packaging>
 
-  <name>messaging</name>
+  <name>BlastMe</name>
   <url>http://maven.apache.org</url>
 
   <properties>
