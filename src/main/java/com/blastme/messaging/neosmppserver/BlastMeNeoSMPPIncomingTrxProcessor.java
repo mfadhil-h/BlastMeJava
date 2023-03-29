@@ -346,16 +346,16 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 			if(message.length() <= 160){
 				return 1;
 			} else {
-				return (int) Math.ceil(message.length() / 153);
+				return (int) Math.ceil((double) message.length() / (double) 153);
 			}
 		} else if(encoding.equals("UCS2")) {
 			if(message.length() <= 70){
 				return 1;
 			} else {
-				return (int) Math.ceil(message.length() / 67);
+				return (int) Math.ceil((double) message.length() / (double) 67);
 			}
 		} else {
-			return (int) Math.ceil(message.length() / 67);
+			return (int) Math.ceil((double) message.length() / (double) 67);
 		}
 	}
 	
