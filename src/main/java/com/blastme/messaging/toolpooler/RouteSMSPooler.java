@@ -100,7 +100,7 @@ public class RouteSMSPooler {
 		}
 	}
 	
-	public String getRoutedVendorId(String messageId, String clientSenderIdId, String telecomId){
+	public static String getRoutedVendorId(String messageId, String clientSenderIdId, String telecomId){
 		LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived", false, false, true, "",
 				 " - clientSenderIdId: " + clientSenderIdId + "-telecomId:" + telecomId, null);
 		String routedVendorId = "";

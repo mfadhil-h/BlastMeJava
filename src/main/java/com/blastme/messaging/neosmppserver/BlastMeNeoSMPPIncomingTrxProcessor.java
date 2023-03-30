@@ -3,6 +3,7 @@ package com.blastme.messaging.neosmppserver;
 import java.lang.ref.WeakReference;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import org.apache.logging.log4j.Logger;
@@ -354,6 +355,8 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 			} else {
 				return (int) Math.ceil((double) message.length() / (double) 67);
 			}
+		} else if(encoding.equals("WHATSAPP")) {
+			return 1;
 		} else {
 			return (int) Math.ceil((double) message.length() / (double) 67);
 		}
@@ -455,7 +458,7 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 						if(businessModel.equals("PREPAID")){
 							// Real balance deduction is in ROUTER. NOT IN SMPP FRONT END.
 							double divisionBalance = clientBalancePooler.getClientBalance(clientId);
-				
+
 							if(divisionBalance > clientPricePerSubmit){
 								isBalanceEnough = true;
 							} else {
@@ -520,6 +523,30 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 				LoggingPooler.doLog(logger, "INFO", "BlastMeNeoSMPPIncomingTrxProcessor", "doProcessTheSMS", false, false, true, messageId, 
 						"Session ID: " + sessionId + ". SENDERID IS NOT DEFINED. errCode: " + errorCode + ", esmeErrCode: INVALID SOURCE ADDRESS.", null);
 			}
+
+			/* Check Vendor Whatsapp to change ENCODING sms count change to 1 */
+			String [] vendorWhatsapp = {"ARAN20230314", "ARTP20230319", "ARTP20230126", "ARTP20230207",
+					"NATH20230316", "PAIA20220704", "PATP20220704", "PAXT20220704", "SHST20230214", "WAFE21062321",
+					"WATI20220701", "AR0220230329"};
+			LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor", "doProcessTheSMS",
+					false, false, true, messageId,
+							this.systemId + " - routingId: " + clientSenderId + "-" +
+							clientId  + "-" + this.systemId + "-" + telecomId, null);
+
+			String vendorId = RouteSMSPooler.getRoutedVendorId(messageId,
+					clientSenderId + "-" + clientId  + "-" + this.systemId, telecomId.trim());
+			LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor", "doProcessTheSMS",
+					false, false, true, messageId,
+							this.systemId + " - vendorId: " + vendorId, null);
+
+			boolean found = Arrays.asList(vendorWhatsapp).contains(vendorId);
+			LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor", "doProcessTheSMS",
+					false, false, true, messageId,
+							this.systemId + " - found: " + String.valueOf(found), null);
+
+			if (found) {
+				messageEncoding = "WHATSAPP";
+			}
 			
 			// Get messageLength & smsCount
 			int messageLength = getMessageLength(messageEncoding, shortMessage);
@@ -581,8 +608,8 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 				jsonIncoming.put("receiverType", receiverType); // SMPP and HTTP only
 				jsonIncoming.put("smsChannel", receiverType);
 				jsonIncoming.put("sysSessionId", this.sessionId);
-            	jsonIncoming.put("messageLength", getMessageLength(messageEncoding, shortMessage));
-            	jsonIncoming.put("messageCount", getSmsCount(shortMessage, messageEncoding));
+            	jsonIncoming.put("messageLength", messageLength);
+            	jsonIncoming.put("messageCount", smsCount);
             	jsonIncoming.put("clientPricePerSubmit", clientPricePerSubmit);
 
 				LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor", "doProcessTheSMS - " + this.sessionId, false, false, false, messageId, 
