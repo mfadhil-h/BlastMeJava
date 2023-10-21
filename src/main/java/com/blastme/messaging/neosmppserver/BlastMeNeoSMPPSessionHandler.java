@@ -5,6 +5,7 @@ import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 import com.blastme.messaging.toolpooler.*;
 import com.google.gson.Gson;
@@ -300,6 +301,8 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 		LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived",
 				false, false, true, "", this.blastmeSessionId + " - json pduRequest: " + gson.toJson(pduRequest), null);
 
+		List<String> userClientSplitMID = Arrays.asList("Cm15mpp1", "Cm15mpp2", "AkunP1ntar01");
+
         // Default value of response
         PduResponse response = pduRequest.createResponse();
 
@@ -404,26 +407,32 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 	    			// Combine all shortMessage
 					HashMap<String, String> result = combineMessage(clientSenderId, msisdn, messageId, byteId, maxMessageCount, currentMessageCount, shortMessage);
 	    			byte[] allSMSMessage = Base64.decode(result.get("encoded_byte"));
+					String tempMID = messageId;
 					messageId = result.get("first_message_id");
 //					String strCurrentIndex = result.get("current_index");
 //					int currentMessageIndex = Integer.parseInt(strCurrentIndex);
 
 //	    			if (maxMessageCount == currentMessageIndex && allSMSMessage.length != 0) {
-	    			if (maxMessageCount == currentMessageCount && allSMSMessage.length != 0) {
-//	    				// NULL, no complete yet the combination process
-//	    				// Do not process anything
-//	    			} else {
-	    				// Complete the combination process
-		                // Run thread smppIncomingTrxProcessor
-	    				LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived", false, false, true, messageId, 
-		    					"Incoming sms is with UDH. The byteId: " + byteId + ", maxMessageCount: " + maxMessageCount + ", currentMessageCount: " +
+					if (maxMessageCount == currentMessageCount && allSMSMessage.length != 0) {
+						if (userClientSplitMID.contains(session.getConfiguration().getSystemId())) {
+							messageId = result.get("first_message_id");
+						}
+					// NULL, no complete yet the combination process
+					// Do not process anything
+	    			// } else {
+						// Complete the combination process
+						// Run thread smppIncomingTrxProcessor
+						LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived", false, false, true, messageId,
+								"Incoming sms is with UDH. The byteId: " + byteId + ", maxMessageCount: " + maxMessageCount + ", currentMessageCount: " +
 										currentMessageCount + ", thisSMS: " + theSMSPart, null);
-	    				
-		                Thread incomingTrxProcessor = new Thread(new BlastmeNeoSMPPIncomingTrxProcessor(messageId, systemId, remoteIpAddress, clientSenderId, msisdn, allSMSMessage, 
-		                		dataCoding, clientId, mtSourceAddress, mtDestinationAddress, clientPropertyPooler, clientBalancePooler, smsTransactionOperationPooler, rabbitMqPooler, 
-		                		rabbitMqConnection, redisPooler, sessionRef, logger));
-		                incomingTrxProcessor.start();
 
+						Thread incomingTrxProcessor = new Thread(new BlastmeNeoSMPPIncomingTrxProcessor(messageId, systemId, remoteIpAddress, clientSenderId, msisdn, allSMSMessage,
+								dataCoding, clientId, mtSourceAddress, mtDestinationAddress, clientPropertyPooler, clientBalancePooler, smsTransactionOperationPooler, rabbitMqPooler,
+								rabbitMqConnection, redisPooler, sessionRef, logger));
+						incomingTrxProcessor.start();
+					}
+					if (userClientSplitMID.contains(session.getConfiguration().getSystemId())) {
+						messageId = tempMID;
 					}
 					// Send submitresponse
 					SubmitSmResp submitSmResp = mt.createResponse();
@@ -450,8 +459,8 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 	                }
 	                
 	                // Run thread smppIncomingTrxProcessor
-	                Thread incomingTrxProcessor = new Thread(new BlastmeNeoSMPPIncomingTrxProcessor(messageId, systemId, remoteIpAddress, clientSenderId, msisdn, shortMessage, 
-	                		dataCoding, clientId, mtSourceAddress, mtDestinationAddress, clientPropertyPooler, clientBalancePooler, smsTransactionOperationPooler, rabbitMqPooler, 
+	                Thread incomingTrxProcessor = new Thread(new BlastmeNeoSMPPIncomingTrxProcessor(messageId, systemId, remoteIpAddress, clientSenderId, msisdn, shortMessage,
+	                		dataCoding, clientId, mtSourceAddress, mtDestinationAddress, clientPropertyPooler, clientBalancePooler, smsTransactionOperationPooler, rabbitMqPooler,
 	                		rabbitMqConnection, redisPooler, sessionRef, logger));
 	                incomingTrxProcessor.start();
 	                
