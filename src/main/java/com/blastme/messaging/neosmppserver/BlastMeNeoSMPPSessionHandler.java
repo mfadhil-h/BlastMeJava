@@ -431,13 +431,25 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 								rabbitMqConnection, redisPooler, sessionRef, logger));
 						incomingTrxProcessor.start();
 					}
-					if (userClientSplitMID.contains(session.getConfiguration().getSystemId())) {
-						messageId = tempMID;
+					// if (userClientSplitMID.contains(session.getConfiguration().getSystemId())) {
+					// 	messageId = tempMID;
+					// }
+					if (maxMessageCount > currentMessageCount && userClientSplitMID.contains(session.getConfiguration().getSystemId())) {
+						// Send submitresponse
+						SubmitSmResp submitSmResp = mt.createResponse();
+						submitSmResp.setCommandStatus(SmppConstants.STATUS_OK);
+						response = submitSmResp;
+						LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived", false, false, true, messageId,
+								"Response UDH should be empty", null);
+					} else {
+						// Send submitresponse
+						SubmitSmResp submitSmResp = mt.createResponse();
+						submitSmResp.setMessageId(messageId);
+						submitSmResp.setCommandStatus(SmppConstants.STATUS_OK);
+						response = submitSmResp;
+						LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived", false, false, true, messageId,
+								"Response UDH should be response success", null);
 					}
-					// Send submitresponse
-					SubmitSmResp submitSmResp = mt.createResponse();
-					submitSmResp.setMessageId(messageId);
-					response = submitSmResp;
 				} else {
 
 					byte dataCoding = mt.getDataCoding();
