@@ -391,6 +391,10 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable{
 				//String status = jsonMessage.getString("errorCode");
 				String status = jsonMessage.getString("status");
 				String msisdn = jsonMessage.getString("msisdn");
+				String originMessageId = "";
+				if (jsonMessage.has("originMessageId")) {
+					originMessageId = jsonMessage.getString("originMessageId");
+				}
 				
 				// Get sessionId yang digunakan utk terima message, spy DR menggunakan session yang sama
 				String sysSessionId = "";
@@ -406,7 +410,11 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable{
 						"messageId: " + messageId + ", status: " + status + ", msisdn: " + msisdn + ", trxdata value " + redisVal, null);
 				
 				JSONObject jsonTrxDetail = smsTransactionOperationPooler.getTransactionDetail(messageId);
-				
+
+				if (!jsonTrxDetail.has("message")) {
+					jsonTrxDetail = smsTransactionOperationPooler.getTransactionDetail(originMessageId);
+				}
+
 				String theSMS = jsonTrxDetail.getString("message");
 				String theSysId = jsonTrxDetail.getString("apiUserName").trim();
 				String theClientSenderId = jsonTrxDetail.getString("clientSenderId").trim();

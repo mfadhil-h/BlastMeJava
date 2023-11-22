@@ -175,6 +175,8 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
     	byte[] combinedMessage = new byte[] {};
 		int currentIndex = 0;
 		HashMap<String, String> result = new HashMap<String, String>();
+		StringBuilder messageAllIds = new StringBuilder();
+		String tempMessageId = messageId;
 
 		if (currentCount > 1) {
 			String redisKeyIn = "multipartsms-" + origin + "-" + destination + "-" + byteId + "-" + totalMessageCount + "-" + (currentCount-1);
@@ -199,6 +201,8 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 		HashMap<String, String> mapRedisVal = new HashMap<String, String>();
 		mapRedisVal.put("encoded_byte", encodedByte);
 		mapRedisVal.put("first_message_id", messageId);
+		mapRedisVal.put("temp_message_id", tempMessageId);
+		System.out.println("part: "+currentCount+", temp_message_id: " + tempMessageId);
 
 		String jsonRedisVal = gson.toJson(mapRedisVal);
 
@@ -278,6 +282,13 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
             	System.arraycopy(combinedMessage, 0, xByte, 0, combinedMessage.length);
             	System.arraycopy(redisValByte, 0, xByte, combinedMessage.length, redisValByte.length);
             	System.out.println("new xByte: " + Arrays.toString(xByte));
+				if (x > 1) {
+					messageAllIds.append(", ").append(mapRedisValCombine.get("temp_message_id"));
+					System.out.println("comnbine part: "+x+", messageAllIds: " + messageAllIds);
+				} else {
+					messageAllIds = new StringBuilder(mapRedisValCombine.get("temp_message_id"));
+					System.out.println("comnbine part: "+x+", messageAllIds: " + messageAllIds);
+				}
             	
             	combinedMessage = xByte; 
         	}
@@ -288,6 +299,8 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 		result.put("encoded_byte", encodedByte);
 //		result.put("current_index", String.valueOf(currentIndex));
 		result.put("first_message_id", messageId);
+		result.put("temp_message_id", tempMessageId);
+		result.put("message_all_ids", String.valueOf(messageAllIds));
     	
     	return result;
     }
@@ -300,8 +313,6 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 				false, false, true, "", this.blastmeSessionId + " - pduRequest: " + pduRequest.toString(), null);
 		LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived",
 				false, false, true, "", this.blastmeSessionId + " - json pduRequest: " + gson.toJson(pduRequest), null);
-
-		List<String> userClientSplitMID = Arrays.asList("Cm15mpp1", "Cm15mpp2", "AkunP1ntar01");
 
         // Default value of response
         PduResponse response = pduRequest.createResponse();
@@ -353,10 +364,7 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 
 				if (isUdh) {
 					// Handle multipart sms
-
 					byte[] userDataHeader = GsmUtil.getShortMessageUserDataHeader(mt.getShortMessage());
-//					new String(bytes, StandardCharsets.UTF_16BE);
-//					Charset.forName()
 					// lets assume the latest value is current Index SMPP Multipart
 					// second after latest value is max Index SMPP Multipart
 					int[] headerEncode = new int[userDataHeader.length];
@@ -372,14 +380,10 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 					}
 
 					int byteId = headerEncode[2] & 0xff;
-//					int thisTotalMessages = headerEncode[2] & 0xff; //Old assumption
-//					int maxMessageCount = headerEncode[1] & 0xff;
 					int maxMessageCount = headerEncode[1] & 0xff;
 					int currentMessageCount = headerEncode[0] & 0xff;
-//					int currentMessageCount = userDataHeader[6] & 0xff;
 					LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived", false, false, true, "",
 							this.blastmeSessionId + " - " + session.getConfiguration().getSystemId() +
-//									" - currentMessageCount: " + currentMessageCount+
 									" - byteId: " + byteId+" - maxMessageCount: " + maxMessageCount+" - currentMessageCount: " + currentMessageCount, null);
 					
 	                byte dataCoding = mt.getDataCoding();
@@ -407,49 +411,46 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 	    			// Combine all shortMessage
 					HashMap<String, String> result = combineMessage(clientSenderId, msisdn, messageId, byteId, maxMessageCount, currentMessageCount, shortMessage);
 	    			byte[] allSMSMessage = Base64.decode(result.get("encoded_byte"));
-					String tempMID = messageId;
 					messageId = result.get("first_message_id");
-//					String strCurrentIndex = result.get("current_index");
-//					int currentMessageIndex = Integer.parseInt(strCurrentIndex);
+					String tempMessageId = result.get("temp_message_id");
+					String allMessageIds = result.get("message_all_ids");
 
-//	    			if (maxMessageCount == currentMessageIndex && allSMSMessage.length != 0) {
 					if (maxMessageCount == currentMessageCount && allSMSMessage.length != 0) {
-						if (userClientSplitMID.contains(session.getConfiguration().getSystemId())) {
-							messageId = result.get("first_message_id");
-						}
 					// NULL, no complete yet the combination process
 					// Do not process anything
-	    			// } else {
 						// Complete the combination process
 						// Run thread smppIncomingTrxProcessor
 						LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived", false, false, true, messageId,
 								"Incoming sms is with UDH. The byteId: " + byteId + ", maxMessageCount: " + maxMessageCount + ", currentMessageCount: " +
 										currentMessageCount + ", thisSMS: " + theSMSPart, null);
 
-						Thread incomingTrxProcessor = new Thread(new BlastmeNeoSMPPIncomingTrxProcessor(messageId, systemId, remoteIpAddress, clientSenderId, msisdn, allSMSMessage,
+						if (!this.smsTransactionOperationPooler.getUserIsMultiMID(session.getConfiguration().getSystemId())) {
+							allMessageIds = "";
+						}
+
+						Thread incomingTrxProcessor = new Thread(new BlastmeNeoSMPPIncomingTrxProcessor(messageId, systemId, remoteIpAddress, allMessageIds, clientSenderId, msisdn, allSMSMessage,
 								dataCoding, clientId, mtSourceAddress, mtDestinationAddress, clientPropertyPooler, clientBalancePooler, smsTransactionOperationPooler, rabbitMqPooler,
 								rabbitMqConnection, redisPooler, sessionRef, logger));
 						incomingTrxProcessor.start();
 					}
-					// if (userClientSplitMID.contains(session.getConfiguration().getSystemId())) {
-					// 	messageId = tempMID;
-					// }
-					if (maxMessageCount > currentMessageCount && userClientSplitMID.contains(session.getConfiguration().getSystemId())) {
-						// Send submitresponse
-						SubmitSmResp submitSmResp = mt.createResponse();
-						submitSmResp.setCommandStatus(SmppConstants.STATUS_OK);
-						response = submitSmResp;
+					// Send submitResponse
+//					SubmitSmResp submitSmResp = mt.createResponse();
+//					submitSmResp.setMessageId(messageId);
+//					response = submitSmResp;
+
+					SubmitSmResp submitSmResp = mt.createResponse();
+					if (this.smsTransactionOperationPooler.getUserIsMultiMID(session.getConfiguration().getSystemId())) {
+						// Send submitResponse
+						submitSmResp.setMessageId(tempMessageId);
 						LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived", false, false, true, messageId,
-								"Response UDH should be empty", null);
+								"Response UDH should be another message id: " + tempMessageId, null);
 					} else {
-						// Send submitresponse
-						SubmitSmResp submitSmResp = mt.createResponse();
+						// Send submitResponse
 						submitSmResp.setMessageId(messageId);
-						submitSmResp.setCommandStatus(SmppConstants.STATUS_OK);
-						response = submitSmResp;
 						LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived", false, false, true, messageId,
-								"Response UDH should be response success", null);
+								"Response UDH should be same message id: " + messageId, null);
 					}
+					response = submitSmResp;
 				} else {
 
 					byte dataCoding = mt.getDataCoding();
@@ -471,7 +472,7 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 	                }
 	                
 	                // Run thread smppIncomingTrxProcessor
-	                Thread incomingTrxProcessor = new Thread(new BlastmeNeoSMPPIncomingTrxProcessor(messageId, systemId, remoteIpAddress, clientSenderId, msisdn, shortMessage,
+	                Thread incomingTrxProcessor = new Thread(new BlastmeNeoSMPPIncomingTrxProcessor(messageId, systemId, remoteIpAddress, "", clientSenderId, msisdn, shortMessage,
 	                		dataCoding, clientId, mtSourceAddress, mtDestinationAddress, clientPropertyPooler, clientBalancePooler, smsTransactionOperationPooler, rabbitMqPooler,
 	                		rabbitMqConnection, redisPooler, sessionRef, logger));
 	                incomingTrxProcessor.start();

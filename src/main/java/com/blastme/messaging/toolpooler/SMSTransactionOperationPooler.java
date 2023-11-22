@@ -106,6 +106,65 @@ public class SMSTransactionOperationPooler {
 			}
 		}		
 	}
+
+	// Function ini sama seperti diatas dipakai oleh SMPP server untuk save initial data + multi mid untuk DR beberapa user/client
+	public void saveInitialSMPPData(String messageId, LocalDateTime receiverDateTime, String batchId, String receiverData, String receiverClientResponse, String receiverclientIpAddress, LocalDateTime clientResponseDateTime, LocalDateTime trxDateTime, String msisdn, String message, String countryCode, String prefix, String telecomId, String trxStatus,
+									String receiverType, String clientSenderIdId, String clientSenderId, String clientId, String apiUserName, double clientUnitPrice, String currency, String messageEncoding, int messageLength, int smsCount, String allMessageIds){
+		Connection connection = null;
+		Statement statement = null;
+		//Statement statementReceiver = null;
+
+		try{
+			// For multi-concurrent-thread sake, all connection, resultset and statement initiated per function
+			connection = bds.getConnection();
+
+			System.out.println(messageId + " SAVING INITIAL DATA");
+
+			statement = connection.createStatement();
+
+			System.out.println(messageId + " SAVING QUERY: " + statement.toString());
+
+			String queryInsert = "INSERT INTO transaction_sms(message_id, transaction_date, msisdn, message, country_code, telecom_id, prefix, status_code, " +
+					"receiver_type, application_id, client_id, currency, message_encodng, message_length, sms_count, client_price_per_unit, " +
+					"client_price_total, client_sender_id, batch_id, api_username, multipart_messeage_ids) VALUES ('" + messageId + "', '" + receiverDateTime.format(formatter) + "', '" + msisdn +
+					"', '" + quote(message) + "', '" + countryCode + "', '" + telecomId + "', '" + prefix + "', '" + trxStatus + "', 'SMPP', 'SMPP_CORE', '" + clientId +
+					"', '" + currency + "', '" + messageEncoding + "', " + messageLength + ", " + smsCount + ", " + String.format("%.5f", clientUnitPrice) +
+					", " + String.format("%.5f", smsCount * clientUnitPrice) +  ", '" + quote(clientSenderId) + "', '" + batchId + "', '" + apiUserName + "', '" + allMessageIds + "')";
+
+			System.out.println(messageId + " QUERY: " + queryInsert);
+
+			statement.executeUpdate(queryInsert);
+
+			// Insert statement_receiver
+			String queryReceiver = "INSERT INTO transaction_sms_receiver(message_id, receiver_date_time, receiver_data, receiver_client_response, client_ip_address, " +
+					"receiver_client_response_date_time) VALUES ('" + messageId + "', '" + receiverDateTime.format(formatter) + "', '" + quote(receiverData) +
+					"', '" + quote(receiverClientResponse) + "', '" + quote(receiverclientIpAddress) + "', '" + quote(clientResponseDateTime.format(formatter)) + "')";
+
+			System.out.println(messageId + " QUERY RECEIVER: " + queryReceiver);
+
+			statement.executeUpdate(queryReceiver);
+
+		} catch(SQLException se) {
+			se.printStackTrace();
+			LoggingPooler.doLog(logger, "INFO", "SMSTransactionOperationPooler", "saveInitialSMPPData", true, false, false, "",
+					"Failed to save initial data. Error occured.", se);
+		} catch (Exception e) {
+			e.printStackTrace();
+			LoggingPooler.doLog(logger, "INFO", "SMSTransactionOperationPooler", "saveInitialSMPPData", true, false, false, "",
+					"Failed to save initial data. Error occured.", e);
+		} finally {
+			try {
+				if (statement != null)
+					statement.close();
+				if (connection != null)
+					connection.close();
+			} catch(Exception e) {
+				e.printStackTrace();
+				LoggingPooler.doLog(logger, "DEBUG", "SMSTransactionOperationPooler", "saveInitialSMPPData", true, false, false, "",
+						"Failed to close query statement.", e);
+			}
+		}
+	}
 	
 	public void saveTransactionVendor(String messageId, String vendorId, LocalDateTime vendorHitDateTime, String vendorHitRequest,
 			LocalDateTime vendorRespDateTime, String vendorHitResponse, String vendorMessageId, LocalDateTime routerToTransceiverDateTime,
@@ -227,6 +286,51 @@ public class SMSTransactionOperationPooler {
 		}			
 		
 		return trxStatus;
+	}
+
+	public boolean getUserIsMultiMID(String userId) {
+		boolean isMultiMID = false;
+
+		Connection connection = null;
+		Statement statement = null;
+		//Statement statementReceiver = null;
+
+		try{
+			// For multi-concurrent-thread sake, all connection, resultset and statement initiated per function
+			connection = bds.getConnection();
+
+			System.out.println(userId + " GETTING INITIAL DATA");
+
+			statement = connection.createStatement();
+
+			String query = "select is_multi_mid from user_api where username like '%" + userId + "%'";
+			ResultSet rs = statement.executeQuery(query);
+			System.out.println(userId + " QUERY: " + query);
+
+			while(rs.next()) {
+				isMultiMID = rs.getBoolean("is_multi_mid");
+			}
+
+			LoggingPooler.doLog(logger, "INFO", "SMSTransactionOperationPooler", "getUserIsMultiMID", false, false, false, "",
+					"userId: " + userId + " -> isMultiMID: " + isMultiMID, null);
+		} catch (Exception e) {
+			e.printStackTrace();
+			LoggingPooler.doLog(logger, "INFO", "SMSTransactionOperationPooler", "getUserIsMultiMID", true, false, false, "",
+					"Failed to get trx status. Error occured.", e);
+		} finally {
+			try {
+				if (statement != null)
+					statement.close();
+				if (connection != null)
+					connection.close();
+			} catch(Exception e) {
+				e.printStackTrace();
+				LoggingPooler.doLog(logger, "DEBUG", "SMSTransactionOperationPooler", "getUserIsMultiMID", true, false, false, "",
+						"Failed to close query statement.", e);
+			}
+		}
+
+		return isMultiMID;
 	}
 	
 	public JSONObject getTransactionDetail(String messageId) {

@@ -41,6 +41,7 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 	private String messageId;
 	private String systemId;
 	private String remoteIpAddress;
+	private String allMessageIds;
 	private String clientSenderId;
 	private String msisdn;
 	private byte[] bShortMessage;
@@ -66,15 +67,16 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 	private Connection rabbitMqConnection;
 	private RedisPooler redisPooler;
 	private RedisCommands<String, String> redisCommand;
-	
-	public BlastmeNeoSMPPIncomingTrxProcessor(String theMessageId, String theSystemId, String theRemoteIpAddress, String theClientSenderId, String theMsisdn, 
-			byte[] theShortMessage, byte theDataCoding, String theClientId, Address theMtSourceAddress, Address theMtDestinationAddress, 
+
+	public BlastmeNeoSMPPIncomingTrxProcessor(String theMessageId, String theSystemId, String theRemoteIpAddress, String allMessageIds, String theClientSenderId, String theMsisdn,
+			byte[] theShortMessage, byte theDataCoding, String theClientId, Address theMtSourceAddress, Address theMtDestinationAddress,
 			ClientPropertyPooler theClientPropertyPooler, ClientBalancePooler theClientBalancePooler, SMSTransactionOperationPooler theSmsTransactionOperationPooler,
 			RabbitMQPooler theRabbitMqPooler, Connection theRabbitMqConnection, RedisPooler theRedisPooler, WeakReference<SmppSession> theSessionRef, Logger theLogger) {
 		this.messageId = theMessageId;
 		System.out.println("INITIATE msgId " + this.messageId);
 		this.systemId = theSystemId;
 		this.remoteIpAddress = theRemoteIpAddress;
+		this.allMessageIds = allMessageIds;
 		this.clientSenderId = theClientSenderId;
 		this.msisdn = theMsisdn;
 		this.bShortMessage = theShortMessage;
@@ -258,40 +260,74 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMddHHmmssSSS");
 
 			LocalDateTime now = LocalDateTime.now();
-			this.smsTransactionOperationPooler.saveInitialSMPPData(messageId, now, "SMPPAPI", receiverData, receiverClientResponse, 
-					this.remoteIpAddress, now, now, msisdn.trim(), message.trim(), countryCode, prefix, telecomId, trxStatus, "SMPP", clientSenderIdId, clientSenderId, this.clientId, 
-					this.systemId, clientUnitPrice, currency, messageEncoding, messageLength, smsCount);
-			
-			LoggingPooler.doLog(logger, "DEBUG", "BlastmeSMPPServerNeo - SMPPIncomingTrxProcessor", "saveInitialData - " + this.sessionId, false, false, false, messageId, 
-					"Successfully save Initial Data to Database.", null);	
+			this.smsTransactionOperationPooler.saveInitialSMPPData(messageId, now, "SMPPAPI", receiverData, receiverClientResponse,
+					this.remoteIpAddress, now, now, msisdn.trim(), message.trim(), countryCode, prefix, telecomId, trxStatus, "SMPP", clientSenderIdId, clientSenderId, this.clientId,
+					this.systemId, clientUnitPrice, currency, messageEncoding, messageLength, smsCount, this.allMessageIds);
 
-			// Submit to Redis as initial data with expiry 7 days
-			int expiry = 7 * 24 * 60 * 60;
-			JSONObject jsonRedis = new JSONObject();
-			jsonRedis.put("messageId", messageId);
-			jsonRedis.put("receiverDateTime", receiverDateTime.format(formatter));
-			jsonRedis.put("transactionDateTime", trxDateTime.format(formatter));
-			jsonRedis.put("msisdn", msisdn.trim());		// Have to be trimmed
-			jsonRedis.put("message", message.trim()); 	// Have to be trimmed
-			jsonRedis.put("telecomId", telecomId);
-			jsonRedis.put("countryCode", countryCode);
-			jsonRedis.put("prefix", prefix);
-			jsonRedis.put("errorCode", trxStatus);
-			jsonRedis.put("apiUserName", this.systemId);
-			jsonRedis.put("clientSenderIdId", clientSenderIdId);
-			jsonRedis.put("clientSenderId", clientSenderId);
-			jsonRedis.put("clientId", this.clientId);
-			jsonRedis.put("apiUserName", this.systemId);
-			jsonRedis.put("clientIpAddress", this.remoteIpAddress);
-			jsonRedis.put("receiverType", receiverType); // SMPP and HTTP only
-			jsonRedis.put("sysSessionId", this.sessionId);
+			LoggingPooler.doLog(logger, "DEBUG", "BlastmeSMPPServerNeo - SMPPIncomingTrxProcessor", "saveInitialData - " + this.sessionId, false, false, false, messageId,
+					"Successfully save Initial Data to Database.", null);
 
-			String redisKey = "trxdata-" + messageId.trim();
-			String redisVal = jsonRedis.toString();
-			
-			redisPooler.redisSetWithExpiry(redisCommand, redisKey, redisVal, expiry);
-			LoggingPooler.doLog(logger, "DEBUG", "BlastmeSMPPServerNeo - SMPPIncomingTrxProcessor", "saveInitialData - " + this.sessionId, false, false, false, messageId, 
-					"Successfully save Initial Data to Database and REDIS.", null);	
+			String[] multiMessageIds = this.allMessageIds.trim().split(",");
+			if (multiMessageIds.length > 0) {
+				for (String multiMessageId : multiMessageIds) {
+					// Submit to Redis as initial data with expiry 7 days
+					int expiry = 7 * 24 * 60 * 60;
+					JSONObject jsonRedis = new JSONObject();
+					jsonRedis.put("messageId", multiMessageId);
+					jsonRedis.put("receiverDateTime", receiverDateTime.format(formatter));
+					jsonRedis.put("transactionDateTime", trxDateTime.format(formatter));
+					jsonRedis.put("msisdn", msisdn.trim());        // Have to be trimmed
+					jsonRedis.put("message", message.trim());    // Have to be trimmed
+					jsonRedis.put("telecomId", telecomId);
+					jsonRedis.put("countryCode", countryCode);
+					jsonRedis.put("prefix", prefix);
+					jsonRedis.put("errorCode", trxStatus);
+					jsonRedis.put("apiUserName", this.systemId);
+					jsonRedis.put("clientSenderIdId", clientSenderIdId);
+					jsonRedis.put("clientSenderId", clientSenderId);
+					jsonRedis.put("clientId", this.clientId);
+					jsonRedis.put("apiUserName", this.systemId);
+					jsonRedis.put("clientIpAddress", this.remoteIpAddress);
+					jsonRedis.put("receiverType", receiverType); // SMPP and HTTP only
+					jsonRedis.put("sysSessionId", this.sessionId);
+
+					String redisKey = "trxdata-" + multiMessageId.trim();
+					String redisVal = jsonRedis.toString();
+
+					redisPooler.redisSetWithExpiry(redisCommand, redisKey, redisVal, expiry);
+					LoggingPooler.doLog(logger, "DEBUG", "BlastmeSMPPServerNeo - SMPPIncomingTrxProcessor", "saveInitialData - " + this.sessionId, false, false, false, multiMessageId,
+							"Successfully save Initial Data to Database and REDIS.", null);
+				}
+			} else {
+				// Above this for multiDR if needed
+				// Submit to Redis as initial data with expiry 7 days
+				int expiry = 7 * 24 * 60 * 60;
+				JSONObject jsonRedis = new JSONObject();
+				jsonRedis.put("messageId", messageId);
+				jsonRedis.put("receiverDateTime", receiverDateTime.format(formatter));
+				jsonRedis.put("transactionDateTime", trxDateTime.format(formatter));
+				jsonRedis.put("msisdn", msisdn.trim());        // Have to be trimmed
+				jsonRedis.put("message", message.trim());    // Have to be trimmed
+				jsonRedis.put("telecomId", telecomId);
+				jsonRedis.put("countryCode", countryCode);
+				jsonRedis.put("prefix", prefix);
+				jsonRedis.put("errorCode", trxStatus);
+				jsonRedis.put("apiUserName", this.systemId);
+				jsonRedis.put("clientSenderIdId", clientSenderIdId);
+				jsonRedis.put("clientSenderId", clientSenderId);
+				jsonRedis.put("clientId", this.clientId);
+				jsonRedis.put("apiUserName", this.systemId);
+				jsonRedis.put("clientIpAddress", this.remoteIpAddress);
+				jsonRedis.put("receiverType", receiverType); // SMPP and HTTP only
+				jsonRedis.put("sysSessionId", this.sessionId);
+
+				String redisKey = "trxdata-" + messageId.trim();
+				String redisVal = jsonRedis.toString();
+
+				redisPooler.redisSetWithExpiry(redisCommand, redisKey, redisVal, expiry);
+				LoggingPooler.doLog(logger, "DEBUG", "BlastmeSMPPServerNeo - SMPPIncomingTrxProcessor", "saveInitialData - " + this.sessionId, false, false, false, messageId,
+						"Successfully save Initial Data to Database and REDIS.", null);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			LoggingPooler.doLog(logger, "DEBUG", "BlastmeSMPPServerNeo - SMPPIncomingTrxProcessor", "saveInitialData - " + this.sessionId, true, false, false, messageId, 
@@ -420,14 +456,14 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 			LocalDateTime incomingDateTime = LocalDateTime.now();
 			
 			// Validate clientSenderId
-			if (isSenderIdValid(this.clientId, this.clientSenderId) == true) {
+			if (isSenderIdValid(this.clientId, this.clientSenderId)) {
 				// clientSenderId is valid
 				clientSenderIdId = clientSenderId.trim() + "-" + this.clientId.trim();
 				
 				// Validate msisdn
 				JSONObject jsonMsisdn = isPrefixValid(this.msisdn);
 				
-				if (jsonMsisdn.getBoolean("isValid") == true) {
+				if (jsonMsisdn.getBoolean("isValid")) {
 					// Prefix is VALID
 					// Set MSISDN property
 					prefix = jsonMsisdn.getString("prefix");
@@ -435,7 +471,7 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 					countryCode = jsonMsisdn.getString("countryCode");
 					
 					// Validate ROUTE
-					if(isRouteDefined(this.clientId, this.clientSenderId, this.systemId, telecomId) == true){
+					if(isRouteDefined(this.clientId, this.clientSenderId, this.systemId, telecomId)){
 						// ROUTE IS DEFINED
 						
 						// Validate balance
@@ -459,11 +495,7 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 							// Real balance deduction is in ROUTER. NOT IN SMPP FRONT END.
 							double divisionBalance = clientBalancePooler.getClientBalance(clientId);
 
-							if(divisionBalance > clientPricePerSubmit){
-								isBalanceEnough = true;
-							} else {
-								isBalanceEnough = false;
-							}
+							isBalanceEnough = divisionBalance > clientPricePerSubmit;
 							
 							LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor", "doProcessTheSMS", false, false, true, messageId, 
 									"Session ID: " + sessionId + ". Checking initial balance - divisionBalance: " + divisionBalance, null);
@@ -472,7 +504,7 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 						}
 						
 						// If balance is enough (will always be enough for postpaid)
-						if (isBalanceEnough == true) {
+						if (isBalanceEnough) {
 							// BALANCE IS ENOUGH
 							errorCode = "002";
 							deliveryStatus = "ACCEPTED";
@@ -576,12 +608,12 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 					submitCount = 1;
 				}
 				DeliveryReceipt dlrReceipt = new DeliveryReceipt(messageId, submitCount, 0, new DateTime(), new DateTime(), deliveryState, esmeErrCode, shortMessage);
-				
+
 				Address moSourceAddress = this.mtDestinationAddress;
 				Address moDestinationAddress = this.mtSourceAddress;
 				
 				sendDeliveryReceipt(sessionRef.get(), moSourceAddress, moDestinationAddress, dlrReceipt.toShortMessage().getBytes(), this.dataCoding);
-				LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor", "doProcessTheSMS - " + this.sessionId, false, false, false, messageId, 
+				LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor", "doProcessTheSMS - " + this.sessionId, false, false, false, messageId,
 						"Sending DLR with session: " + sessionRef.get().getConfiguration().getName() + ". DLR: " + dlrReceipt.toShortMessage(), null);	
 			} else {
 				// SUBMIT TO QUEUE SMPP_INCOMING - Need specific channel per thread, do open new channel and close it after
