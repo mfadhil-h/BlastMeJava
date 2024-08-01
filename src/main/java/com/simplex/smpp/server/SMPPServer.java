@@ -195,18 +195,23 @@ public class SMPPServer {
 					if (result.verified) {
 						// Check for existing session
 						SmppServerSession existingSession = mapSession.get(systemId);
-						if (existingSession == null) {
+						if (existingSession == null || (existingSession != null && !existingSession.isBound())) {
 							// PASSWORD VERIFIED
 							LoggingPooler.doLog(logger, "DEBUG", "SimpleSmppServerHandler", "sessionBindRequested", false, false, true, "",
 									"Incoming binding request - systemId: " + systemId + ", remoteIpAddress: " + remoteIpAddress + ", PASSWORD IS VERIFIED.", null);
 
 							// LOGIN SUCCESS
 							smsTransactionOperationPooler.saveSMPPBindAttempt(String.valueOf(sessionId), LocalDateTime.now(), systemId, remoteIpAddress, "BINDING REQUESTED", "PROCESSING");
+
+							// If there is an existing session but not bound, remove it
+							if (existingSession != null) {
+								existingSession.destroy();
+								mapSession.remove(systemId);
+								LoggingPooler.doLog(logger, "DEBUG", "SimpleSmppServerHandler", "sessionBindRequested", false, false, true, "",
+										"Existing session closed and removed for systemId: " + systemId, null);
+							}
 						} else {
 							// Close the existing session
-//							existingSession.destroy();
-//							mapSession.remove(systemId);
-//							logger.info("Existing session closed for systemId: {}", systemId);
 							LoggingPooler.doLog(logger, "DEBUG", "SimpleSmppServerHandler", "sessionBindRequested", false, false, true, "",
 									"Incoming binding request - systemId: " + systemId + ", remoteIpAddress: " + remoteIpAddress + ", SYSTEM ID IS ALREADY CONNECT, NO DUPLICATE BIND.", null);
 							// Save to SMPP bind attempt to log
