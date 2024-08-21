@@ -1,4 +1,4 @@
-package com.simplex.smpp.toolpooler;
+package com.blastme.messaging.toolpooler;
 
 import java.io.File;
 import java.sql.Connection;
@@ -10,7 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.json.JSONObject;
-import com.simplex.smpp.configuration.Configuration;
+import com.blastme.messaging.configuration.Configuration;
 
 public class SenderIdSMSPooler {
 	private static Logger logger;
@@ -33,6 +33,9 @@ public class SenderIdSMSPooler {
 		jsonSenderIdSMSProperty = new JSONObject();
 		initiateJsonSenderIdSMSProperty();
 
+		// Log loaded print large data no needed
+//		LoggingPooler.doLog(logger, "INFO", "SMSSenderIdPooler", "SMSSenderIdPooler", false, false, false, "",
+//				"Module SMSSenderIdPooler is initiated and ready to serve. jsonSenderIdSMSProperty: " + jsonSenderIdSMSProperty.toString(), null);
 		LoggingPooler.doLog(logger, "INFO", "SMSSenderIdPooler", "SMSSenderIdPooler", false, false, false, "",
 				"Module SMSSenderIdPooler is initiated and ready to serve.", null);
 	}
@@ -64,6 +67,9 @@ public class SenderIdSMSPooler {
             	
             	jsonSenderIdSMSProperty.put(resultSet.getString("client_sender_id_id").trim(), jsonDetail);
             }
+            
+//    		LoggingPooler.doLog(logger, "DEBUG", "SMSSenderIdPooler", "initiateJsonSenderIdSMSProperty", false, false, false, "",
+//    				"jsonSenderIdSMSProperty: " + jsonSenderIdSMSProperty.toString(), null);
 		} catch (Exception e) {
 			e.printStackTrace();
     		LoggingPooler.doLog(logger, "INFO", "SMSSenderIdPooler", "initiateJsonSenderIdSMSProperty", true, false, false, "", 
@@ -83,4 +89,8 @@ public class SenderIdSMSPooler {
 			 }
 		}
 	}	
+	
+	public String getClientSenderIdId(String clientId, String clientSenderId){
+		return clientSenderId + "-" + clientId;
+	}
 }

@@ -1,4 +1,4 @@
-package com.simplex.smpp.toolpooler;
+package com.blastme.messaging.toolpooler;
 
 import java.io.File;
 import java.sql.Connection;
@@ -10,17 +10,17 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.json.JSONObject;
-import com.simplex.smpp.configuration.Configuration;
+import com.blastme.messaging.configuration.Configuration;
 
 public class UserAPISMPPSMSPooler {
 	private static Logger logger;
 		
 	// Penampung SystemId and Password and IPAddress
 	public static JSONObject jsonSysIdAccess;
-	public static JSONObject jsonSimpleSysIdAccess;
+	public static JSONObject jsonNeoSysIdAccess;
 	
 	public static JSONObject jsonClientIdToAccess;
-	public static JSONObject jsonSimpleClientIdToAccess;
+	public static JSONObject jsonNeoClientIdToAccess;
 	
 	public UserAPISMPPSMSPooler() {
 		// Load Configuration
@@ -38,11 +38,11 @@ public class UserAPISMPPSMSPooler {
 		// Load jsonSysIdAccess
 		loadJSONSMPPSysId();
 		
-		// Load jsonSimpleSysIdAddcess
-		loadJSONSimpleSMPPSysId();
+		// Load jsonNeoSysIdAddcess
+		loadJSONNeoSMPPSysId();
 		
 		LoggingPooler.doLog(logger, "INFO", "UserAPISMPPSMSPooler", "UserAPISMPPSMSPooler", false, false, false, "", 
-				"Module UserAPISMPPSMSPooler is initiated and ready to serve.", null);
+				"Module UserAPISMPPSMSPooler is initiated and ready to serve. jsonSysIdAccess: " + jsonSysIdAccess.toString(), null);						
 	}
 
 	public static void loadJSONSMPPSysId(){
@@ -75,6 +75,9 @@ public class UserAPISMPPSMSPooler {
     			jsonClientIdToAccess.put(resultSet.getString("client_id"), jsonDetail);
             }
 
+			// Log loaded print large data no needed
+//    		LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", false, false, false, "",
+//    				"jsonSysIdAccess: " + jsonSysIdAccess.toString(), null);
 			LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", false, false, false, "",
 					"jsonSysIdAccess and jsonClientIdToAccess are initiated and ready", null);
 		} catch (Exception e) {
@@ -97,9 +100,9 @@ public class UserAPISMPPSMSPooler {
 		}
 	}
 	
-	public static void loadJSONSimpleSMPPSysId(){
-		jsonSimpleSysIdAccess = new JSONObject();
-		jsonSimpleClientIdToAccess = new JSONObject();
+	public static void loadJSONNeoSMPPSysId(){
+		jsonNeoSysIdAccess = new JSONObject();
+		jsonNeoClientIdToAccess = new JSONObject();
 		
 		Connection connection = null;
 		Statement statement = null;
@@ -123,13 +126,16 @@ public class UserAPISMPPSMSPooler {
     			jsonDetail.put("clientId", resultSet.getString("client_id"));
     			System.out.println(resultSet.getString("username"));
     			
-    			jsonSimpleSysIdAccess.put(resultSet.getString("username"), jsonDetail);
+    			jsonNeoSysIdAccess.put(resultSet.getString("username"), jsonDetail);
     			
-    			jsonSimpleClientIdToAccess.put(resultSet.getString("client_id"), jsonDetail);
+    			jsonNeoClientIdToAccess.put(resultSet.getString("client_id"), jsonDetail);
             }
 
+			// Log loaded print large data no needed
+//    		LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", false, false, false, "",
+//    				"jsonSysIdAccess: " + jsonSysIdAccess.toString(), null);
     		LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", false, false, false, "",
-    				"jsonSimpleSysIdAccess and jsonSimpleClientIdToAccess are initiated and ready.", null);
+    				"jsonNeoSysIdAccess and jsonNeoClientIdToAccess are initiated and ready.", null);
 		} catch (Exception e) {
 			e.printStackTrace();
     		LoggingPooler.doLog(logger, "INFO", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", true, false, false, "", 
@@ -149,12 +155,78 @@ public class UserAPISMPPSMSPooler {
 			 }
 		}
 	}
+	
+	public JSONObject isValidSysId(String systemId, String password, String ipAddress){
+		LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", false, false, false, "", 
+				"TO VALIDATE: systemId: " + systemId + ", password: " + password + ", ipAddress: " + ipAddress + " -> JSONSYSIDACCESS: " + jsonSysIdAccess.toString(), null);
 
-	public String getSimpleClientId(String sysId) {
+		JSONObject jsonReturn = new JSONObject();
+		
+		if(jsonSysIdAccess.has(systemId.trim())){
+			// systemId valid, check password
+			JSONObject jsonDetail = jsonSysIdAccess.getJSONObject(systemId.trim());
+			
+			if(password.equals(jsonDetail.get("password"))){
+				// Password valid, check IPAddress
+				String theRegisteredIPAddress = jsonDetail.getString("ipAddress");
+				
+				if(!theRegisteredIPAddress.trim().contains("ALL")){
+					// Registered certain IP, split them by comma
+//					String[] splittedIpAddress = theRegisteredIPAddress.split(",");
+//					
+//					for(int oh = 0; oh < splittedIpAddress.length; oh++){
+//						if(ipAddress.trim().equals(splittedIpAddress[oh].trim())){
+//							jsonReturn.put("status", 0); // Success
+//							jsonReturn.put("description", "Validation success.");
+//							
+//							break;
+//						} else {
+//							jsonReturn.put("status", -3);
+//							jsonReturn.put("description", "Unregistered IP Address.");							
+//						}
+//					}
+					
+					if (theRegisteredIPAddress.contains(ipAddress.trim())) {
+						jsonReturn.put("status", 0); // Success
+						jsonReturn.put("description", "Validation success.");
+					} else {
+						jsonReturn.put("status", -3);
+						jsonReturn.put("description", "Unregistered IP Address.");							
+					}
+				} else {
+					// Open for ALL
+					jsonReturn.put("status", 0);
+					jsonReturn.put("description", "Validation success.");
+				}
+			} else {
+				jsonReturn.put("status", -2);
+				jsonReturn.put("description", "Bad password.");
+			}
+		} else {
+			jsonReturn.put("status", -1);
+			jsonReturn.put("description", "Bad system id.");
+		}
+		
+		return jsonReturn;
+	}
+
+	public String getClientId(String sysId){
 		String clientId = "";
 		
-		if (jsonSimpleSysIdAccess.has(sysId)) {
-			JSONObject jsonData = jsonSimpleSysIdAccess.getJSONObject(sysId);
+		if(jsonSysIdAccess.has(sysId)){
+			JSONObject jsonData = jsonSysIdAccess.getJSONObject(sysId);
+			
+			clientId = jsonData.getString("clientId");
+		}
+		
+		return clientId;
+	}
+	
+	public String getNeoClientId(String sysId) {
+		String clientId = "";
+		
+		if (jsonNeoSysIdAccess.has(sysId)) {
+			JSONObject jsonData = jsonNeoSysIdAccess.getJSONObject(sysId);
 			
 			clientId = jsonData.getString("clientId");
 		}

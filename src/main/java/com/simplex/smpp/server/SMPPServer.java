@@ -1,4 +1,4 @@
-package com.simplex.smpp.server;
+package com.blastme.messaging.neosmppserver;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -9,14 +9,25 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import com.simplex.smpp.toolpooler.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.json.JSONObject;
 import java.time.LocalDateTime;
 
-import com.simplex.smpp.configuration.Configuration;
+import com.blastme.messaging.configuration.Configuration;
+import com.blastme.messaging.toolpooler.ClientBalancePooler;
+import com.blastme.messaging.toolpooler.ClientPropertyPooler;
+import com.blastme.messaging.toolpooler.LoggingPooler;
+import com.blastme.messaging.toolpooler.RabbitMQPooler;
+import com.blastme.messaging.toolpooler.RedisPooler;
+import com.blastme.messaging.toolpooler.RouteSMSPooler;
+import com.blastme.messaging.toolpooler.SMPPEnquiryLinkPooler;
+import com.blastme.messaging.toolpooler.SMSTransactionOperationPooler;
+import com.blastme.messaging.toolpooler.SenderIdSMSPooler;
+import com.blastme.messaging.toolpooler.TelecomPrefixPooler;
+import com.blastme.messaging.toolpooler.Tool;
+import com.blastme.messaging.toolpooler.UserAPISMPPSMSPooler;
 import com.cloudhopper.smpp.SmppConstants;
 import com.cloudhopper.smpp.SmppServerConfiguration;
 import com.cloudhopper.smpp.SmppServerHandler;
@@ -31,10 +42,11 @@ import com.rabbitmq.client.Connection;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 
-public class SMPPServer {
+public class BlastMeNeoSMPPServer {
 	private static Logger logger;
 	
-	private final static int smppPort = 4775;
+	private final static int smppPort = 2775;
+	//private final static int smppPort = 2777;			// SMPP PASTI OLD
 	private final static int smppMaxConnection = 500;
 	private final static int smppRequestExpiryTimeout = 30000;
 	private final static int smppWindowMonitorInterval = 15000;
@@ -44,7 +56,7 @@ public class SMPPServer {
 	
 	static HashMap<String, SmppServerSession> mapSession = new HashMap<String, SmppServerSession>();
 	
-	public SMPPServer() {
+	public BlastMeNeoSMPPServer() {
 		// Set timezone
 		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Jakarta"));
 
@@ -57,12 +69,16 @@ public class SMPPServer {
 		// Setup logger
 		logger = LogManager.getLogger("SMPP_SERVER");
 
+		// Initiate LoggingPooler
+		new LoggingPooler();
+
 		try {
 			// Initiate RedisPooler
 			redisPooler = new RedisPooler();
-
+			//redisCommand = redisPooler.redisInitiateConnection();
+						
 			// Initiate RabbitMQPooler
-			new RabbitMQPooler();
+			new RabbitMQPooler();		
 
 			// Initiate jsonPrefixProperty in TelecomPrefixPooler
 			new TelecomPrefixPooler();
@@ -71,7 +87,10 @@ public class SMPPServer {
 			new SenderIdSMSPooler();
 
 			// Initiate RouteSMSPooler
-			new RouteSMSPooler();
+			new RouteSMSPooler();	
+
+//			// Initiate SenderIdSMSPooler
+//			new SenderIdSMSPooler();
 		} catch (Exception e) {
 			e.printStackTrace();
 
@@ -94,12 +113,26 @@ public class SMPPServer {
 	        configuration.setDefaultWindowWaitTimeout(configuration.getDefaultRequestExpiryTimeout());
 	        configuration.setDefaultSessionCountersEnabled(true);
 	        configuration.setJmxEnabled(true);
-
-	        DefaultSmppServer smppServer = new DefaultSmppServer(configuration, new SimpleSmppServerHandler(), executor);
+	        
+//	        // Enable smpp configuration for SSL configuration
+//	        SslConfiguration sslConfig = new SslConfiguration();
+//	        sslConfig.setKeyStorePath("/app/certificate/pintar2020.jks");
+//	        sslConfig.setKeyStorePassword("cakep123");
+//	        //sslConfig.setKeyManagerPassword("cakep123");
+//	        sslConfig.setTrustStorePath("/app/certificate/pintar2020.jks");
+//	    	sslConfig.setTrustStorePassword("cakep123");
+//	        //sslConfig.setTrustAll(true); //- Kalao gak ada ditemukan jks nya, makanya trust all certificate
+//	        
+//	        configuration.setSslConfiguration(sslConfig);
+//	        configuration.setUseSsl(true);
 	
-	        logger.info("Starting SIMPLE SMPP server...");
+	        // create a server, start it up
+	        // DefaultSmppServer smppServer = new DefaultSmppServer(configuration, new DefaultSmppServerHandler(), executor, monitorExecutor);
+	        DefaultSmppServer smppServer = new DefaultSmppServer(configuration, new NeoSmppServerHandler(), executor);
+	
+	        logger.info("Starting NEO SMPP server...");
 			smppServer.start();
-	        logger.info("SIMPLE SMPP server is started");
+	        logger.info("NEO SMPP server is started");
 		} catch (SmppChannelException e) {
 			e.printStackTrace();
 			System.exit(-1);
@@ -107,27 +140,30 @@ public class SMPPServer {
 	}
 	
 	public static void main(String[] args) {
-		SMPPServer smppServer = new SMPPServer();
+		BlastMeNeoSMPPServer smppServer = new BlastMeNeoSMPPServer();
 		smppServer.startSMPPServer();
 	}
 	
 	
-	public static class SimpleSmppServerHandler implements SmppServerHandler {
+	public static class NeoSmppServerHandler implements SmppServerHandler {
 		private UserAPISMPPSMSPooler userApiSMPPSMSPooler;
 		private SMPPEnquiryLinkPooler smppEnquiryLinkPooler;
 		private ClientBalancePooler clientBalancePooler;
 		private SMSTransactionOperationPooler smsTransactionOperationPooler;
 		private ClientPropertyPooler clientPropertyPooler;
+		private RouteSMSPooler routeSMSPooler;
 		private RabbitMQPooler rabbitPooler;
 		private Connection rabbitConnection;
 
 		private Tool tool;
 		
 		private final static ScheduledThreadPoolExecutor execClientDLR = new ScheduledThreadPoolExecutor(5);
+		private final static ScheduledThreadPoolExecutor execClientMOWAMessage = new ScheduledThreadPoolExecutor(1);
 		
-		public SimpleSmppServerHandler() {
+		public NeoSmppServerHandler() {
 			try {
-        		tool = new Tool();	// Initiate tool
+        		// Initiate tool
+        		tool = new Tool();
         		
         		userApiSMPPSMSPooler = new UserAPISMPPSMSPooler();
         		System.out.println("USERAPISMPPSMSPooler is initiated.");
@@ -146,83 +182,72 @@ public class SMPPServer {
         		
         		rabbitPooler = new RabbitMQPooler();
         		System.out.println("RabbitMQPooler is initiated.");
+
+				routeSMSPooler = new RouteSMSPooler();
+				System.out.println("RouteSMSPooler is initiated.");
         		
         		rabbitConnection = rabbitPooler.getConnection();
-        		System.out.println("RabbitMQConnection is initiated.");
-
-        		System.out.println("Executing CLIENTDLRSUBMITTER.");	// Run executor DLR Client
-        		execClientDLR.schedule(new ClientDLR(), 10, TimeUnit.SECONDS);
+        		System.out.println("RabbitMQConnection is initiated."); 
+        		
+        		// Run executor DLR Client		
+        		System.out.println("Executing CLIENTDLRSUBMITTER.");
+        		execClientDLR.schedule(new BlastMeNeoClientDLRSubmitter(), 10, TimeUnit.SECONDS);
+//        		execClientDLR.schedule(new BlastMeNeoClientDLRSubmitter(), 10, TimeUnit.SECONDS);
+//        		execClientDLR.schedule(new BlastMeNeoClientDLRSubmitter(), 10, TimeUnit.SECONDS);
+//        		execClientDLR.schedule(new BlastMeNeoClientDLRSubmitter(), 10, TimeUnit.SECONDS);
+//        		execClientDLR.schedule(new BlastMeNeoClientDLRSubmitter(), 10, TimeUnit.SECONDS);
+        		execClientMOWAMessage.schedule(new BlastmeNeoSMPPWAIncomingSubmitter(), 10, TimeUnit.SECONDS);
         	} catch (Exception e) {
         		e.printStackTrace();
         		
-        		LoggingPooler.doLog(logger, "DEBUG", "SMPPServer", "SimpleSMPPServerHandler", true, false, true, "", 
-    				"Failed to initiate SimpleSMPPServerHandler. Error occur.", e);
+        		LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPServer", "NeoSMPPServerHandler", true, false, true, "", 
+    				"Failed to initiate NeoSMPPServerHandler. Error occur.", e);
         	}
 		}
 
 		@Override
-		public void sessionBindRequested(
-				Long sessionId, SmppSessionConfiguration sessionConfiguration,
-				BaseBind bindRequest) throws SmppProcessingException {
+		public void sessionBindRequested(Long sessionId, SmppSessionConfiguration sessionConfiguration,
+				@SuppressWarnings("rawtypes") BaseBind bindRequest) throws SmppProcessingException {
 			
-
+			//sessionConfiguration.setName(sessionConfiguration.getSystemId());
+            
             String systemId = sessionConfiguration.getSystemId();
             String password = sessionConfiguration.getPassword();
             String remoteIpAddress = sessionConfiguration.getHost();
-
-			LoggingPooler.doLog(logger, "DEBUG", "SMPPServer - DefaultSmppServerHandler", "sessionBindRequested", false, false, true, "", 
+            //String clientId = userApiSMPPSMSPooler.getClientId(systemId);
+            
+			LoggingPooler.doLog(logger, "DEBUG", "BlastMeSMPPServer - DefaultSmppServerHandler", "sessionBindRequested", false, false, true, "", 
 					"Incoming binding request - systemId: " + systemId + ", remoteIpAddress: " + remoteIpAddress, null);				
             
 			// Validate username and password
-			if(UserAPISMPPSMSPooler.jsonSimpleSysIdAccess.has(systemId.trim())){
-				LoggingPooler.doLog(logger, "DEBUG", "SimpleSmppServerHandler", "sessionBindRequested", false, false, true, "", 
+			if(UserAPISMPPSMSPooler.jsonNeoSysIdAccess.has(systemId.trim())){
+				LoggingPooler.doLog(logger, "DEBUG", "NeoSmppServerHandler", "sessionBindRequested", false, false, true, "", 
 						"Incoming binding request - systemId: " + systemId + ", remoteIpAddress: " + remoteIpAddress + ", SYSTEMID IS VERIFIED.", null);
 				
 				// systemId valid, check password
-				JSONObject jsonDetail = UserAPISMPPSMSPooler.jsonSimpleSysIdAccess.getJSONObject(systemId.trim());
+				JSONObject jsonDetail = UserAPISMPPSMSPooler.jsonNeoSysIdAccess.getJSONObject(systemId.trim());
 				
 				String configPassword = jsonDetail.getString("password");
 				String configIPAddress = jsonDetail.getString("ipAddress");
 				
 				if (configIPAddress.trim().contains("ALL") || configIPAddress.trim().contains(remoteIpAddress.trim())) {
 					// Remote IP Address is VALID.
-					LoggingPooler.doLog(logger, "DEBUG", "SimpleSmppServerHandler", "sessionBindRequested", false, false, true, "", 
+					LoggingPooler.doLog(logger, "DEBUG", "NeoSmppServerHandler", "sessionBindRequested", false, false, true, "", 
 							"Incoming binding request - systemId: " + systemId + ", remoteIpAddress: " + remoteIpAddress + ", REMOTE IP ADDRESS IS VERIFIED.", null);
 					
 					// Verify the password
 					BCrypt.Result result = BCrypt.verifyer().verify(password.getBytes(StandardCharsets.UTF_8), configPassword.getBytes());
 					
-					if (result.verified) {
-						// Check for existing session
-						SmppServerSession existingSession = mapSession.get(systemId);
-						if (existingSession == null || (existingSession != null && !existingSession.isBound())) {
-							// PASSWORD VERIFIED
-							LoggingPooler.doLog(logger, "DEBUG", "SimpleSmppServerHandler", "sessionBindRequested", false, false, true, "",
-									"Incoming binding request - systemId: " + systemId + ", remoteIpAddress: " + remoteIpAddress + ", PASSWORD IS VERIFIED.", null);
-
-							// LOGIN SUCCESS
-							smsTransactionOperationPooler.saveSMPPBindAttempt(String.valueOf(sessionId), LocalDateTime.now(), systemId, remoteIpAddress, "BINDING REQUESTED", "PROCESSING");
-
-							// If there is an existing session but not bound, remove it
-							if (existingSession != null) {
-								existingSession.destroy();
-								mapSession.remove(systemId);
-								LoggingPooler.doLog(logger, "DEBUG", "SimpleSmppServerHandler", "sessionBindRequested", false, false, true, "",
-										"Existing session closed and removed for systemId: " + systemId, null);
-							}
-						} else {
-							// Close the existing session
-							LoggingPooler.doLog(logger, "DEBUG", "SimpleSmppServerHandler", "sessionBindRequested", false, false, true, "",
-									"Incoming binding request - systemId: " + systemId + ", remoteIpAddress: " + remoteIpAddress + ", SYSTEM ID IS ALREADY CONNECT, NO DUPLICATE BIND.", null);
-							// Save to SMPP bind attempt to log
-							smsTransactionOperationPooler.saveSMPPBindAttempt(String.valueOf(sessionId), LocalDateTime.now(), systemId, remoteIpAddress, "BINDING REQUESTED", "FAILED TO BIND. SYSTEM ID IS ALREADY CONNECT, NO DUPLICATE BIND.");
-
-							// Throw invalid BIND FAILED
-							throw new SmppProcessingException(SmppConstants.STATUS_BINDFAIL, null);
-						}
+					if (result.verified == true) {
+						// PASSWORD VERIFIED
+						LoggingPooler.doLog(logger, "DEBUG", "NeoSmppServerHandler", "sessionBindRequested", false, false, true, "", 
+								"Incoming binding request - systemId: " + systemId + ", remoteIpAddress: " + remoteIpAddress + ", PASSWORD IS VERIFIED.", null);
+						
+						// LOGIN SUCCESS
+						smsTransactionOperationPooler.saveSMPPBindAttempt(String.valueOf(sessionId), LocalDateTime.now(), systemId, remoteIpAddress, "BINDING REQUESTED", "PROCESSING");
 					} else {
 						// NOT VERIFIED
-						LoggingPooler.doLog(logger, "DEBUG", "SimpleSmppServerHandler", "sessionBindRequested", false, false, true, "", 
+						LoggingPooler.doLog(logger, "DEBUG", "NeoSmppServerHandler", "sessionBindRequested", false, false, true, "", 
 								"Incoming binding request - systemId: " + systemId + ", remoteIpAddress: " + remoteIpAddress + ", PASSWORD IS INVALID.", null);
 						
 			            // Save to SMPP bind attempt to log
@@ -233,7 +258,7 @@ public class SMPPServer {
 					}
 				} else {
 					// Remote IP Address INVALID
-					LoggingPooler.doLog(logger, "DEBUG", "SimpleSmppServerHandler", "sessionBindRequested", false, false, true, "", 
+					LoggingPooler.doLog(logger, "DEBUG", "NeoSmppServerHandler", "sessionBindRequested", false, false, true, "", 
 							"Incoming binding request - systemId: " + systemId + ", remoteIpAddress: " + remoteIpAddress + ", REMOTE IP ADDRESS IS INVALID.", null);
 
 		            // Save to SMPP bind attempt to log
@@ -244,7 +269,7 @@ public class SMPPServer {
 				}		
 			} else {
 				// SystemID INVALID
-				LoggingPooler.doLog(logger, "DEBUG", "SimpleSmppServerHandler", "sessionBindRequested", false, false, true, "", 
+				LoggingPooler.doLog(logger, "DEBUG", "NeoSmppServerHandler", "sessionBindRequested", false, false, true, "", 
 						"Incoming binding request - systemId: " + systemId + ", remoteIpAddress: " + remoteIpAddress + ", SYSTEMID IS INVALID.", null);
 
 	            // Save to SMPP bind attempt to log
@@ -259,40 +284,40 @@ public class SMPPServer {
 		public void sessionCreated(Long sessionId, SmppServerSession session, BaseBindResp preparedBindResponse)
 				throws SmppProcessingException {
 		
-			LoggingPooler.doLog(logger, "DEBUG", "SimpleSmppServerHandler", "sessionCreated", false, false, true, "", 
+			LoggingPooler.doLog(logger, "DEBUG", "NeoSmppServerHandler", "sessionCreated", false, false, true, "", 
 					"Session created: " + sessionId.toString(), null);
             
             String systemId = session.getConfiguration().getSystemId();
             String remoteIpAddress = session.getConfiguration().getHost();
-            String clientId = userApiSMPPSMSPooler.getSimpleClientId(systemId);
-            LoggingPooler.doLog(logger, "INFO", "SimpleSmppServerHandler", "sessionCreated", false, false, true, "", 
+            String clientId = userApiSMPPSMSPooler.getNeoClientId(systemId);
+            LoggingPooler.doLog(logger, "INFO", "NeoSmppServerHandler", "sessionCreated", false, false, true, "", 
 					"systemId: " + systemId + ", remote IP address: " + remoteIpAddress + ", clientID: " + clientId, null);
             
             // Assign sessionId
-//            String SessionId = systemId + "-" + tool.generateUniqueID();
-//            LoggingPooler.doLog(logger, "DEBUG", "SimpleSmppServerHandler", "sessionCreated", false, false, true, "",
-//					"SessionId: " + SessionId, null);
+            String blastmeSessionId = systemId + "-" + tool.generateUniqueID();
+            LoggingPooler.doLog(logger, "DEBUG", "NeoSmppServerHandler", "sessionCreated", false, false, true, "", 
+					"blastmeSessionId: " + blastmeSessionId, null);
             
             // Put session into mapSession
-            mapSession.put(systemId, session);
+            mapSession.put(blastmeSessionId, session);
             
-            // Name the session with SessionId
-            session.getConfiguration().setName(systemId);
+            // Name the session with blastmessSessionId
+            session.getConfiguration().setName(blastmeSessionId);
 			
             // Save to smpp bind attempt log
         	smsTransactionOperationPooler.saveSMPPBindAttempt(String.valueOf(sessionId), LocalDateTime.now(), systemId, remoteIpAddress, "BINDING SESSION CREATED", "SUCCESS - SESSION CREATED");
 
-			LoggingPooler.doLog(logger, "DEBUG", "SimpleSmppServerHandler", "sessionCreated", false, false, true, "", 
+			LoggingPooler.doLog(logger, "DEBUG", "NeoSmppServerHandler", "sessionCreated", false, false, true, "", 
 					"Session created fro systemId: " + systemId + ", remoteIpAddress: " + remoteIpAddress + ", clientId: " + 
-					clientId + " -> SessionId: " + systemId + ". Session NAME: " + session.getConfiguration().getName(), null);
+					clientId + " -> blastmeSessionId: " + blastmeSessionId + ". Session NAME: " + session.getConfiguration().getName(), null);				
             
-			session.serverReady(new SMPPSessionHandler(session, systemId, remoteIpAddress, clientId, tool, smppEnquiryLinkPooler, clientPropertyPooler,
-					clientBalancePooler, smsTransactionOperationPooler, rabbitPooler, rabbitConnection, redisPooler, logger));
+			session.serverReady(new BlastMeNeoSMPPSessionHandler(session, blastmeSessionId, remoteIpAddress, clientId, tool, smppEnquiryLinkPooler, clientPropertyPooler, 
+					clientBalancePooler, smsTransactionOperationPooler, routeSMSPooler, rabbitPooler, rabbitConnection, redisPooler, logger));
 		}
 
 		@Override
 		public void sessionDestroyed(Long sessionId, SmppServerSession session) {
-            LoggingPooler.doLog(logger, "INFO", "SimpleSmppServerHandler", "sessionDestroyed", false, false, true, "", 
+            LoggingPooler.doLog(logger, "INFO", "NeoSmppServerHandler", "sessionDestroyed", false, false, true, "", 
 					"Session destroyed: " + session.toString(), null);	
             
             // print out final stats

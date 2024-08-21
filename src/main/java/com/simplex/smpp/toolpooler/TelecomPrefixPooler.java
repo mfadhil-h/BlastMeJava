@@ -1,4 +1,4 @@
-package com.simplex.smpp.toolpooler;
+package com.blastme.messaging.toolpooler;
 
 import java.io.File;
 import java.sql.Connection;
@@ -11,7 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.json.JSONObject;
 
-import com.simplex.smpp.configuration.Configuration;
+import com.blastme.messaging.configuration.Configuration;
 
 public class TelecomPrefixPooler {
 	private static Logger logger;
@@ -34,6 +34,9 @@ public class TelecomPrefixPooler {
 		jsonPrefixProperty = new JSONObject();
 		initiateJSONPrefixProperty();
 
+		// Log loaded print large data no needed
+//		LoggingPooler.doLog(logger, "INFO", "TelecomPrefixPooler", "TelecomPrefixPooler", false, false, false, "",
+//				"Module TelecomPrefixPooler is initiated and ready to serve. jsonClientProperty: " + jsonPrefixProperty.toString(), null);
 		LoggingPooler.doLog(logger, "INFO", "TelecomPrefixPooler", "TelecomPrefixPooler", false, false, false, "",
 				"Module TelecomPrefixPooler is initiated and ready to serve.", null);
 	}
@@ -66,6 +69,9 @@ public class TelecomPrefixPooler {
             	
             	jsonPrefixProperty.put(resultSet.getString("country_code_and_prefix_id").trim(), jsonDetail);
             }
+            
+    		LoggingPooler.doLog(logger, "INFO", "TelecomPrefixPooler", "initiateJSONPrefixProperty", false, false, false, "", 
+    				"jsonPrefxProperty: " + jsonPrefixProperty.toString(), null);
 		} catch (Exception e) {
 			e.printStackTrace();
     		LoggingPooler.doLog(logger, "INFO", "TelecomPrefixPooler", "initiateJSONPrefixProperty", true, false, false, "", 
@@ -84,5 +90,15 @@ public class TelecomPrefixPooler {
 		    		"Failed to close query statement.", e);
 			 }
 		}
+	}
+	
+	public boolean isPrefixOpened(String countryCodeAndPrefix){
+		boolean isOpened = false;
+		
+		if(jsonPrefixProperty.has(countryCodeAndPrefix.trim())){
+			isOpened = true;
+		}
+		
+		return isOpened;
 	}
 }

@@ -1,4 +1,4 @@
-package com.simplex.smpp.toolpooler;
+package com.blastme.messaging.toolpooler;
 
 import java.io.File;
 import java.sql.Connection;
@@ -10,7 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.json.JSONObject;
-import com.simplex.smpp.configuration.Configuration;
+import com.blastme.messaging.configuration.Configuration;
 
 public class RouteSMSPooler {
 	private static Logger logger;
@@ -33,6 +33,9 @@ public class RouteSMSPooler {
 		jsonRouteSMSProperty = new JSONObject();
 		initiateJSONRouteSMSProperty();
 
+		// Log loaded print large data no needed
+//		LoggingPooler.doLog(logger, "INFO", "RouteSMSPooler", "RouteSMSPooler", false, false, false, "",
+//				"Module RouteSMSPooler is initiated and ready to serve. jsonRouteSMSProperty: " + jsonRouteSMSProperty.toString(), null);
 		LoggingPooler.doLog(logger, "INFO", "RouteSMSPooler", "RouteSMSPooler", false, false, false, "",
 				"Module RouteSMSPooler is initiated and ready to serve.", null);
 	}
@@ -77,6 +80,9 @@ public class RouteSMSPooler {
             	            	
             	jsonRouteSMSProperty.put(resultSet.getString("routing_id").trim(), jsonDetail);
             }
+            
+//    		LoggingPooler.doLog(logger, "DEBUG", "RouteSMSPooler", "initiateJSONRouteSMSProperty", false, false, false, "",
+//    				"jsonRouteSMSProperty: " + jsonRouteSMSProperty.toString(), null);
 		} catch (Exception e) {
 			e.printStackTrace();
     		LoggingPooler.doLog(logger, "INFO", "RouteSMSPooler", "initiateJSONRouteSMSProperty", true, false, false, "", 
@@ -114,4 +120,14 @@ public class RouteSMSPooler {
 		return routedVendorId;
 	}
 	
+	public boolean isFakeDrRequired(String messageId, String clientSenderIdId, String telecomId){
+		boolean isRequired = false;
+		
+		String routeId = clientSenderIdId.trim() + "-" + telecomId.trim();
+		if(jsonRouteSMSProperty.has(routeId)){
+			isRequired = jsonRouteSMSProperty.getBoolean("fakeDr");
+		}
+		
+		return isRequired;
+	}
 }
