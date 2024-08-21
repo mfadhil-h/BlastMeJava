@@ -74,9 +74,12 @@ public class UserAPISMPPSMSPooler {
     			
     			jsonClientIdToAccess.put(resultSet.getString("client_id"), jsonDetail);
             }
-            
-    		LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", false, false, false, "", 
-    				"jsonSysIdAccess: " + jsonSysIdAccess.toString(), null);
+
+			// Log loaded print large data no needed
+//    		LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", false, false, false, "",
+//    				"jsonSysIdAccess: " + jsonSysIdAccess.toString(), null);
+			LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", false, false, false, "",
+					"jsonSysIdAccess and jsonClientIdToAccess are initiated and ready", null);
 		} catch (Exception e) {
 			e.printStackTrace();
     		LoggingPooler.doLog(logger, "INFO", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", true, false, false, "", 
@@ -127,9 +130,12 @@ public class UserAPISMPPSMSPooler {
     			
     			jsonNeoClientIdToAccess.put(resultSet.getString("client_id"), jsonDetail);
             }
-            
-    		LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", false, false, false, "", 
-    				"jsonSysIdAccess: " + jsonSysIdAccess.toString(), null);
+
+			// Log loaded print large data no needed
+//    		LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", false, false, false, "",
+//    				"jsonSysIdAccess: " + jsonSysIdAccess.toString(), null);
+    		LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", false, false, false, "",
+    				"jsonNeoSysIdAccess and jsonNeoClientIdToAccess are initiated and ready.", null);
 		} catch (Exception e) {
 			e.printStackTrace();
     		LoggingPooler.doLog(logger, "INFO", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", true, false, false, "", 

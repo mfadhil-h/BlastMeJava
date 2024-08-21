@@ -33,9 +33,12 @@ public class TelecomPrefixPooler {
 		// Initate JSONClientProperty
 		jsonPrefixProperty = new JSONObject();
 		initiateJSONPrefixProperty();
-		
-		LoggingPooler.doLog(logger, "INFO", "TelecomPrefixPooler", "TelecomPrefixPooler", false, false, false, "", 
-				"Module TelecomPrefixPooler is initiated and ready to serve. jsonClientProperty: " + jsonPrefixProperty.toString(), null);
+
+		// Log loaded print large data no needed
+//		LoggingPooler.doLog(logger, "INFO", "TelecomPrefixPooler", "TelecomPrefixPooler", false, false, false, "",
+//				"Module TelecomPrefixPooler is initiated and ready to serve. jsonClientProperty: " + jsonPrefixProperty.toString(), null);
+		LoggingPooler.doLog(logger, "INFO", "TelecomPrefixPooler", "TelecomPrefixPooler", false, false, false, "",
+				"Module TelecomPrefixPooler is initiated and ready to serve.", null);
 	}
 
 	public static void initiateJSONPrefixProperty(){

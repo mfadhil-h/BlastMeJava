@@ -89,8 +89,8 @@ public class BlastMeNeoSMPPServer {
 			// Initiate RouteSMSPooler
 			new RouteSMSPooler();	
 
-			// Initiate SenderIdSMSPooler
-			new SenderIdSMSPooler();
+//			// Initiate SenderIdSMSPooler
+//			new SenderIdSMSPooler();
 		} catch (Exception e) {
 			e.printStackTrace();
 

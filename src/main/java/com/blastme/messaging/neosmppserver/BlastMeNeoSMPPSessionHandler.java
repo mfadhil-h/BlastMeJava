@@ -194,9 +194,8 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
     	// Convert byte[] to string using base64 to make sure the consistency
     	String encodedByte = Base64.encodeBytes(shortMessagePart);
     	
-    	// Tulis ke redis
+    	// Write to redis
     	String redisKey = "multipartsms-" + origin + "-" + destination + "-" + byteId + "-" + totalMessageCount + "-" + currentCount;
-//    	String redisVal = encodedByte;
 
 		HashMap<String, String> mapRedisVal = new HashMap<String, String>();
 		mapRedisVal.put("encoded_byte", encodedByte);
@@ -209,56 +208,9 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
     	redisPooler.redisSetWithExpiry(redisCommand, redisKey, jsonRedisVal, expirySeconds);
 
     	// Check if all messages are already in redis
-//    	boolean isComplete = false;
     	boolean isComplete = (totalMessageCount==currentCount);
-    	boolean wasExist = false;
-    	
+
     	System.out.println("isComplete: " + isComplete);
-//    	for (int x = 1; x <= totalMessageCount; x++) {
-//    		System.out.println("x: " + x);
-//			currentIndex = x;
-//
-//        	String redisKeyIn = "multipartsms-" + origin + "-" + destination + "-" + byteId + "-" + totalMessageCount + "-" + x;
-//        	String redisValIn = redisPooler.redisGet(redisCommand, redisKeyIn);
-//
-//        	if (redisValIn == null || redisValIn.equals("")) {
-//            	System.out.println(x + ".redisKeyIn: " + redisKeyIn + ", redisValIn IS NULL, add next and DO BREAK!");
-//
-//
-//				String redisKey = "multipartsms-" + origin + "-" + destination + "-" + byteId + "-" + totalMessageCount + "-" + x;
-////				String redisVal = encodedByte;
-//
-//				HashMap<String, String> mapRedisVal = new HashMap<String, String>();
-//				mapRedisVal.put("encoded_byte", encodedByte);
-//				mapRedisVal.put("first_message_id", messageId);
-//
-//				String jsonRedisVal = gson.toJson(mapRedisVal);
-//
-//				redisPooler.redisSetWithExpiry(redisCommand, redisKey, jsonRedisVal, expirySeconds);
-//
-//				isComplete = x == totalMessageCount && wasExist;
-//            	break;
-//        	} else {
-//            	System.out.println(x + ". redisKeyIn: " + redisKeyIn + ", redisValIn: " + redisValIn);
-//
-//				// Yang exist sebelumnya harus true, dan x == totalMessage dan redisValIn bukan NILL
-//            	if (x == totalMessageCount && wasExist) {
-//            		isComplete = true;
-//            	}
-//            	wasExist = true;
-//
-////				redisKeyIn = "multipartsms-" + origin + "-" + destination + "-" + byteId + "-" + totalMessageCount + "-" + x;
-////
-//				String jsonRedisValCombine = redisPooler.redisGet(redisCommand, redisKeyIn);
-//				System.out.println("getting first messageID redisKeyIn: " + redisKeyIn + ". jsonRedisValCombine: " + jsonRedisValCombine);
-//				Type type = new TypeToken<HashMap<String, String>>(){}.getType();
-//				HashMap<String, String> mapRedisValCombine = gson.fromJson(jsonRedisValCombine, type);
-//				messageId =  mapRedisValCombine.get("first_message_id");
-//				System.out.println("getting first messageID messageId: " + messageId + ".");
-//
-//            	System.out.println(x + ". wasExist: " + wasExist + ", isComplete: " + isComplete);
-//        	}
-//    	}
     	
     	// If complete, join the message
     	System.out.println("Checking final ISCOMPLETE: " + isComplete);
@@ -304,7 +256,6 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
     	
     	return result;
     }
-    
    
     public PduResponse firePduRequestReceived(@SuppressWarnings("rawtypes") PduRequest pduRequest) {
         SmppSession session = sessionRef.get();
@@ -416,8 +367,8 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 					String allMessageIds = result.get("message_all_ids");
 
 					if (maxMessageCount == currentMessageCount && allSMSMessage.length != 0) {
-					// NULL, no complete yet the combination process
-					// Do not process anything
+						// NULL, no complete yet the combination process
+						// Do not process anything
 						// Complete the combination process
 						// Run thread smppIncomingTrxProcessor
 						LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived", false, false, true, messageId,
@@ -433,10 +384,6 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 								rabbitMqConnection, redisPooler, sessionRef, logger));
 						incomingTrxProcessor.start();
 					}
-					// Send submitResponse
-//					SubmitSmResp submitSmResp = mt.createResponse();
-//					submitSmResp.setMessageId(messageId);
-//					response = submitSmResp;
 
 					SubmitSmResp submitSmResp = mt.createResponse();
 					if (this.smsTransactionOperationPooler.getUserIsMultiMID(session.getConfiguration().getSystemId())) {
@@ -476,9 +423,6 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 	                		dataCoding, clientId, mtSourceAddress, mtDestinationAddress, clientPropertyPooler, clientBalancePooler, smsTransactionOperationPooler, rabbitMqPooler,
 	                		rabbitMqConnection, redisPooler, sessionRef, logger));
 	                incomingTrxProcessor.start();
-	                
-	                //sendDeliveryReceipt(session, mtDestinationAddress, mtSourceAddress, dataCoding);
-	                //sendMoMessage(session, mtDestinationAddress, mtSourceAddress, shortMessage, dataCoding);
 	                
 	                // Send submitresponse
 	                SubmitSmResp submitSmResp = mt.createResponse();

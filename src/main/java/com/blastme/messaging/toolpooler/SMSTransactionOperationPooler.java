@@ -347,7 +347,7 @@ public class SMSTransactionOperationPooler {
 			statement = connection.createStatement();
 			
 			String query = "select transaction_date, msisdn, message, country_code, telecom_id, prefix, status_code, client_id, currency,"
-					+ "message_encodng, message_length, sms_count, client_sender_id, api_username from transaction_sms where message_id = '" + messageId + "'";
+					+ "message_encodng, message_length, sms_count, client_sender_id, api_username, multipart_messeage_ids from transaction_sms where message_id = '" + messageId + "'";
 			
 			ResultSet rs = statement.executeQuery(query);			
 			
@@ -366,6 +366,7 @@ public class SMSTransactionOperationPooler {
 				int smsCount = rs.getInt("sms_count");
 				String clientSenderId = rs.getString("client_sender_id").trim();
 				String apiUserName = rs.getString("api_username").trim();
+				String multipartMesseageIds = rs.getString("multipart_messeage_ids").trim();
 				
 				// Put into jsonTransaction
 				jsonTransaction.put("transactionDateTime", trxDateTime);
@@ -382,6 +383,7 @@ public class SMSTransactionOperationPooler {
 				jsonTransaction.put("count", smsCount);
 				jsonTransaction.put("clientSenderId", clientSenderId);
 				jsonTransaction.put("apiUserName", apiUserName);
+				jsonTransaction.put("multipart_messeage_ids", multipartMesseageIds);
 			}
 			
 			LoggingPooler.doLog(logger, "DEBUG", "SMSTransactionOperationPooler", "getTransactionDetail", false, false, false, "", 
@@ -405,7 +407,6 @@ public class SMSTransactionOperationPooler {
 		
 		return jsonTransaction;
 	}
-	
 	
 	public String getClientId(String messageId) {
 		String clientId = "";
@@ -449,10 +450,15 @@ public class SMSTransactionOperationPooler {
 		return clientId;
 	}
 	
-	private String quote( String toQuote ) {
+	public String quote( String toQuote ) {
 		String result = "";
 		
 		try {
+			// Remove null characters from the string
+			if (toQuote != null) {
+				toQuote = toQuote.replace("\0", "");
+			}
+
 			result = Utils.escapeLiteral( null, toQuote, true ).toString();
 			result = result.replace("'", "\'");
 		} catch (SQLException e) {
@@ -474,14 +480,35 @@ public class SMSTransactionOperationPooler {
 			
 			statement = connection.createStatement();
 			
+//			String queryInsert = "INSERT INTO transaction_sms_dlr(message_id, client_id, dlr_date_time, dlr_body, dlr_status, " +
+//					"dlr_push_to) VALUES ('" + messageId + "', '" + clientId + "', '" +
+//					dlrDateTime.format(formatter) + "', '" + quote(dlrBody) + "', '" + dlrStatus + "', '" + dlrPushTo + "') " +
+//					"ON CONFLICT (message_id) DO UPDATE SET " +
+//					"client_id = EXCLUDED.client_id, " +
+//					"dlr_date_time = EXCLUDED.dlr_date_time, " +
+//					"dlr_body = EXCLUDED.dlr_body, " +
+//					"dlr_status = EXCLUDED.dlr_status, " +
+//					"dlr_push_to = EXCLUDED.dlr_push_to, " +
+//					"dlr_client_push_response = EXCLUDED.dlr_client_push_response";
+
 			String queryInsert = "INSERT INTO transaction_sms_dlr(message_id, client_id, dlr_date_time, dlr_body, dlr_status, "
-					+ "dlr_push_to) VALUES ('" + messageId + "', '" + clientId + "', '" 
+					+ "dlr_push_to) VALUES ('" + messageId + "', '" + clientId + "', '"
 					+ dlrDateTime.format(formatter) + "', '" + quote(dlrBody) + "', '" + dlrStatus + "', '" + dlrPushTo + "')";
-			
-			System.out.println(messageId + " QUERY: " + queryInsert);
+
+			System.out.println(messageId + " QUERY INSERT: " + queryInsert);
+//			System.out.println(messageId + " QUERY UPDATE: " + queryUpdate);
 			
 			statement.execute(queryInsert);
 
+//			int affectedRows = statement.executeUpdate(queryUpdate);
+//
+//			if (affectedRows == 0) {
+//				// No rows were updated, insert a new row
+//				System.out.println(messageId + " NO UPDATE DOING INSERT INSTEAD");
+//				statement.execute(queryInsert);
+//			} else {
+//				System.out.println(messageId + " SUCCESS UPDATE");
+//			}
 		} catch(SQLException se) {
 			se.printStackTrace();
 			LoggingPooler.doLog(logger, "INFO", "SMSTransactionOperationPooler", "saveTransactionDLR", true, false, false, "", 
@@ -504,44 +531,44 @@ public class SMSTransactionOperationPooler {
 		}	
 	}
 
-//	public void updateTransactionDLR(String messageId, String dlrClientResponse) {
-//		Connection connection = null;
-//		Statement statement = null;
-//		//Statement statementReceiver = null;
-//		
-//		try{
-//			// For multi-concurrent-thread sake, all connection, resultset and statement initiated per function
-//            connection = bds.getConnection();
-//			
-//			statement = connection.createStatement();
-//			
-//			String queryUpdate = "update transaction_sms_dlr set dlr_client_push_response = '" + dlrClientResponse + "' where message_id = '" + messageId + "'";
-//			
-//			System.out.println(messageId + " QUERY: " + queryUpdate);
-//			
-//			statement.executeUpdate(queryUpdate);
-//
-//		} catch(SQLException se) {
-//			se.printStackTrace();
-//			LoggingPooler.doLog(logger, "INFO", "SMSTransactionOperationPooler", "updateTransactionDLR", true, false, false, "", 
-//					"Failed to intiate jsonSenderIdSMSProperty. Error occured.", se);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			LoggingPooler.doLog(logger, "INFO", "SMSTransactionOperationPooler", "updateTransactionDLR", true, false, false, "", 
-//					"Failed to intiate jsonSenderIdSMSProperty. Error occured.", e);
-//		} finally {
-//			try {
-//				if (statement != null)
-//					statement.close();
-//				if (connection != null)
-//					connection.close();
-//			} catch(Exception e) {
-//				e.printStackTrace();
-//				LoggingPooler.doLog(logger, "DEBUG", "SMSTransactionOperationPooler", "updateTransactionDLR", true, false, false, "", 
-//						"Failed to close query statement.", e);
-//			}
-//		}	
-//	}
+	public void updateTransactionDLR(String messageId, String dlrClientResponse) {
+		Connection connection = null;
+		Statement statement = null;
+		//Statement statementReceiver = null;
+
+		try{
+			// For multi-concurrent-thread sake, all connection, resultset and statement initiated per function
+            connection = bds.getConnection();
+
+			statement = connection.createStatement();
+
+			String queryUpdate = "update transaction_sms_dlr set dlr_client_push_response = '" + dlrClientResponse + "' where message_id = '" + messageId + "'";
+
+			System.out.println(messageId + " QUERY: " + queryUpdate);
+
+			statement.executeUpdate(queryUpdate);
+
+		} catch(SQLException se) {
+			se.printStackTrace();
+			LoggingPooler.doLog(logger, "INFO", "SMSTransactionOperationPooler", "updateTransactionDLR", true, false, false, "",
+					"Failed to intiate jsonSenderIdSMSProperty. Error occured.", se);
+		} catch (Exception e) {
+			e.printStackTrace();
+			LoggingPooler.doLog(logger, "INFO", "SMSTransactionOperationPooler", "updateTransactionDLR", true, false, false, "",
+					"Failed to intiate jsonSenderIdSMSProperty. Error occured.", e);
+		} finally {
+			try {
+				if (statement != null)
+					statement.close();
+				if (connection != null)
+					connection.close();
+			} catch(Exception e) {
+				e.printStackTrace();
+				LoggingPooler.doLog(logger, "DEBUG", "SMSTransactionOperationPooler", "updateTransactionDLR", true, false, false, "",
+						"Failed to close query statement.", e);
+			}
+		}
+	}
 	
 	public void insertTransactionDLRClientResponse(String messageId, String dlrClientResponse) {
 		Connection connection = null;

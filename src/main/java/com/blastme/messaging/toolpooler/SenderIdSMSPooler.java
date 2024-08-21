@@ -32,9 +32,12 @@ public class SenderIdSMSPooler {
 		// Initate JSONClientProperty
 		jsonSenderIdSMSProperty = new JSONObject();
 		initiateJsonSenderIdSMSProperty();
-		
-		LoggingPooler.doLog(logger, "INFO", "SMSSenderIdPooler", "SMSSenderIdPooler", false, false, false, "", 
-				"Module SMSSenderIdPooler is initiated and ready to serve. jsonSenderIdSMSProperty: " + jsonSenderIdSMSProperty.toString(), null);		
+
+		// Log loaded print large data no needed
+//		LoggingPooler.doLog(logger, "INFO", "SMSSenderIdPooler", "SMSSenderIdPooler", false, false, false, "",
+//				"Module SMSSenderIdPooler is initiated and ready to serve. jsonSenderIdSMSProperty: " + jsonSenderIdSMSProperty.toString(), null);
+		LoggingPooler.doLog(logger, "INFO", "SMSSenderIdPooler", "SMSSenderIdPooler", false, false, false, "",
+				"Module SMSSenderIdPooler is initiated and ready to serve.", null);
 	}
 
 	public static void initiateJsonSenderIdSMSProperty(){
@@ -65,8 +68,8 @@ public class SenderIdSMSPooler {
             	jsonSenderIdSMSProperty.put(resultSet.getString("client_sender_id_id").trim(), jsonDetail);
             }
             
-    		LoggingPooler.doLog(logger, "DEBUG", "SMSSenderIdPooler", "initiateJsonSenderIdSMSProperty", false, false, false, "", 
-    				"jsonSenderIdSMSProperty: " + jsonSenderIdSMSProperty.toString(), null);
+//    		LoggingPooler.doLog(logger, "DEBUG", "SMSSenderIdPooler", "initiateJsonSenderIdSMSProperty", false, false, false, "",
+//    				"jsonSenderIdSMSProperty: " + jsonSenderIdSMSProperty.toString(), null);
 		} catch (Exception e) {
 			e.printStackTrace();
     		LoggingPooler.doLog(logger, "INFO", "SMSSenderIdPooler", "initiateJsonSenderIdSMSProperty", true, false, false, "", 

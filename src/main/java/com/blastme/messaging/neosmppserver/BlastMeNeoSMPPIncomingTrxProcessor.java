@@ -101,15 +101,15 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 		Charset theCharset = getCharsetByDataCoding(dataCoding);
 		
 //		String messageEncoding = "GSM";
-//		if (theCharset == CharsetUtil.CHARSET_GSM) {
-//			messageEncoding = "GSM";
-//		} else if (theCharset == CharsetUtil.CHARSET_GSM7) {
-//			messageEncoding = "GSM";
-//		} else if (theCharset == CharsetUtil.CHARSET_UTF_8) {
-//			messageEncoding = "UCS2";
-//		} else {
-//			messageEncoding = "UCS2";
-//		}
+		if (theCharset == CharsetUtil.CHARSET_GSM) {
+			messageEncoding = "GSM";
+		} else if (theCharset == CharsetUtil.CHARSET_GSM7) {
+			messageEncoding = "GSM";
+		} else if (theCharset == CharsetUtil.CHARSET_UTF_8) {
+			messageEncoding = "UCS2";
+		} else {
+			messageEncoding = "UCS2";
+		}
 		
 		// Get the shortMessage
 		this.shortMessage = CharsetUtil.decode(bShortMessage, theCharset);
@@ -277,7 +277,7 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 					jsonRedis.put("receiverDateTime", receiverDateTime.format(formatter));
 					jsonRedis.put("transactionDateTime", trxDateTime.format(formatter));
 					jsonRedis.put("msisdn", msisdn.trim());        // Have to be trimmed
-					jsonRedis.put("message", message.trim());    // Have to be trimmed
+					jsonRedis.put("message", this.smsTransactionOperationPooler.quote(message).trim());    // Have to be trimmed
 					jsonRedis.put("telecomId", telecomId);
 					jsonRedis.put("countryCode", countryCode);
 					jsonRedis.put("prefix", prefix);
@@ -290,6 +290,7 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 					jsonRedis.put("clientIpAddress", this.remoteIpAddress);
 					jsonRedis.put("receiverType", receiverType); // SMPP and HTTP only
 					jsonRedis.put("sysSessionId", this.sessionId);
+					jsonRedis.put("encoding", messageEncoding);
 
 					String redisKey = "trxdata-" + multiMessageId.trim();
 					String redisVal = jsonRedis.toString();
@@ -307,7 +308,7 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 				jsonRedis.put("receiverDateTime", receiverDateTime.format(formatter));
 				jsonRedis.put("transactionDateTime", trxDateTime.format(formatter));
 				jsonRedis.put("msisdn", msisdn.trim());        // Have to be trimmed
-				jsonRedis.put("message", message.trim());    // Have to be trimmed
+				jsonRedis.put("message", this.smsTransactionOperationPooler.quote(message).trim());    // Have to be trimmed
 				jsonRedis.put("telecomId", telecomId);
 				jsonRedis.put("countryCode", countryCode);
 				jsonRedis.put("prefix", prefix);
@@ -320,6 +321,7 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 				jsonRedis.put("clientIpAddress", this.remoteIpAddress);
 				jsonRedis.put("receiverType", receiverType); // SMPP and HTTP only
 				jsonRedis.put("sysSessionId", this.sessionId);
+				jsonRedis.put("encoding", messageEncoding);
 
 				String redisKey = "trxdata-" + messageId.trim();
 				String redisVal = jsonRedis.toString();
@@ -536,14 +538,77 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 								"Session ID: " + sessionId + ". ROUTE IS NOT DEFINED. errCode: " + errorCode + ", esmeErrCode: SUBMIT FAILED.", null);
 					}
 				} else {
-					// Prefix is not valid
-					errorCode = "113";									// UNREGISTERED PREFIX
-					deliveryStatus = "REJECTED";
-					deliveryState = SmppConstants.STATE_REJECTED;
-					esmeErrCode = SmppConstants.STATUS_INVNUMDESTS;		// INVALID NUMBER DESTINATION
+					// Prefix is VALID
+					// Set MSISDN property
+					prefix = "0";
+					telecomId = "99900";
+					countryCode = "999";
 					
-					LoggingPooler.doLog(logger, "INFO", "BlastMeNeoSMPPIncomingTrxProcessor", "doProcessTheSMS", false, false, true, messageId, 
-							"Session ID: " + sessionId + ". PREFIX IS NOT DEFINED. errCode: " + errorCode + ", esmeErrCode: INVALID NUMBER DESTINATION.", null);
+					// Validate ROUTE
+					if(isRouteDefined(this.clientId, this.clientSenderId, this.systemId, telecomId)){
+						// ROUTE IS DEFINED
+						
+						// Validate balance
+						// Get client currecnt
+						clientCurrency = this.clientPropertyPooler.getCurrencyId(this.clientId.trim());
+						
+						// Check business model, prepaid or postpaid from clientPropertyPooler
+						String businessModel = this.clientPropertyPooler.getBusinessMode(this.clientId).trim();
+						LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor", "doProcessTheSMS", false, false, true, messageId, 
+								"MULTI-COUNTRY CASE - Session ID: " + sessionId + ". Business Mode: " + businessModel, null);
+						
+						// routeId = clientSenderIdId + "-" + telecomId
+						String routeId = clientSenderId + "-" + this.clientId + "-" + this.systemId + "-" + telecomId;
+						JSONObject jsonRoute = RouteSMSPooler.jsonRouteSMSProperty.getJSONObject(routeId);
+						
+						// Get client price from jsonRoute
+						clientPricePerSubmit = jsonRoute.getDouble("clientPricePerSubmit");
+
+						boolean isBalanceEnough = false; // DEFAULT IS FALSE - TO NOT SENDING WHEN ERROR HAPPENS.
+						if(businessModel.equals("PREPAID")){
+							// Real balance deduction is in ROUTER. NOT IN SMPP FRONT END.
+							double divisionBalance = clientBalancePooler.getClientBalance(clientId);
+
+							isBalanceEnough = divisionBalance > clientPricePerSubmit;
+							
+							LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor", "doProcessTheSMS", false, false, true, messageId, 
+									"MULTI-COUNTRY CASE - Session ID: " + sessionId + ". Checking initial balance - divisionBalance: " + divisionBalance, null);
+						} else {
+							isBalanceEnough = true; // POSTPAID.
+						}
+						
+						// If balance is enough (will always be enough for postpaid)
+						if (isBalanceEnough) {
+							// BALANCE IS ENOUGH
+							errorCode = "002";
+							deliveryStatus = "ACCEPTED";
+							deliveryState = SmppConstants.STATE_ACCEPTED;
+							esmeErrCode = SmppConstants.STATUS_OK;
+							
+    						LoggingPooler.doLog(logger, "INFO", "BlastMeNeoSMPPIncomingTrxProcessor", "doProcessTheSMS", false, false, true, messageId, 
+    								"MULTI-COUNTRY CASE - Session ID: " + sessionId + ". BALANCE ENOUGH, MESSAGE IS ACCEPTED. errCode: " + errorCode + ", esmeErrCode: STATUS OK.", null);
+    						// Save initial data and send to SMPP_INCOMING queue to be processed by router
+    						
+						} else {
+							// BALANCE IS NOT ENOUGH
+							errorCode = "122";								// BALANCE NOT ENOUGH
+							deliveryStatus = "REJECTED";
+							deliveryState = SmppConstants.STATE_REJECTED;
+							esmeErrCode = SmppConstants.STATUS_SUBMITFAIL;
+							
+    						LoggingPooler.doLog(logger, "INFO", "BlastMeNeoSMPPIncomingTrxProcessor", "doProcessTheSMS", false, false, true, messageId, 
+    								"MULTI-COUNTRY CASE - Session ID: " + sessionId + ". BALANCE NOT ENOUGH. errCode: " + errorCode + ", esmeErrCode: SUBMITE FAILED.", null);
+						}
+					} else {
+						// Prefix is not valid
+						errorCode = "113";									// UNREGISTERED PREFIX
+						deliveryStatus = "REJECTED";
+						deliveryState = SmppConstants.STATE_REJECTED;
+						esmeErrCode = SmppConstants.STATUS_INVNUMDESTS;		// INVALID NUMBER DESTINATION
+						
+						LoggingPooler.doLog(logger, "INFO", "BlastMeNeoSMPPIncomingTrxProcessor", "doProcessTheSMS", false, false, true, messageId, 
+								"Session ID: " + sessionId + ". PREFIX IS NOT DEFINED. errCode: " + errorCode + ", esmeErrCode: INVALID NUMBER DESTINATION.", null);
+					}
 				}
 			} else {
 				// clientSenderId is NOT VALID
@@ -559,7 +624,7 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 			/* Check Vendor Whatsapp to change ENCODING sms count change to 1 */
 			String [] vendorWhatsapp = {"ARAN20230314", "ARTP20230319", "ARTP20230126", "ARTP20230207",
 					"NATH20230316", "PAIA20220704", "PATP20220704", "PAXT20220704", "SHST20230214", "WAFE21062321",
-					"WATI20220701", "AR0220230329"};
+					"WATI20220701", "AR0220230329", "ARTP20210821", "ARTP20230711"};
 			LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor", "doProcessTheSMS",
 					false, false, true, messageId,
 							this.systemId + " - routingId: " + clientSenderId + "-" +
@@ -626,7 +691,7 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 				jsonIncoming.put("receiverDateTime", incomingDateTime.format(formatter));
 				jsonIncoming.put("transactionDateTime", responseDateTime.format(formatter));
 				jsonIncoming.put("msisdn", msisdn);
-				jsonIncoming.put("message", shortMessage);
+				jsonIncoming.put("message", this.smsTransactionOperationPooler.quote(shortMessage));
 				jsonIncoming.put("telecomId", telecomId);
 				jsonIncoming.put("countryCode", countryCode);
 				jsonIncoming.put("prefix", prefix);
@@ -643,6 +708,7 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
             	jsonIncoming.put("messageLength", messageLength);
             	jsonIncoming.put("messageCount", smsCount);
             	jsonIncoming.put("clientPricePerSubmit", clientPricePerSubmit);
+				jsonIncoming.put("encoding", messageEncoding);
 
 				LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor", "doProcessTheSMS - " + this.sessionId, false, false, false, messageId, 
 						"jsonIncoming: " + jsonIncoming.toString(), null);				

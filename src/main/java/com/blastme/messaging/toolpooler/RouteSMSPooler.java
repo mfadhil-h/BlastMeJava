@@ -32,9 +32,12 @@ public class RouteSMSPooler {
 		// Initate JSONRouteSMSProperty
 		jsonRouteSMSProperty = new JSONObject();
 		initiateJSONRouteSMSProperty();
-		
-		LoggingPooler.doLog(logger, "INFO", "RouteSMSPooler", "RouteSMSPooler", false, false, false, "", 
-				"Module RouteSMSPooler is initiated and ready to serve. jsonRouteSMSProperty: " + jsonRouteSMSProperty.toString(), null);				
+
+		// Log loaded print large data no needed
+//		LoggingPooler.doLog(logger, "INFO", "RouteSMSPooler", "RouteSMSPooler", false, false, false, "",
+//				"Module RouteSMSPooler is initiated and ready to serve. jsonRouteSMSProperty: " + jsonRouteSMSProperty.toString(), null);
+		LoggingPooler.doLog(logger, "INFO", "RouteSMSPooler", "RouteSMSPooler", false, false, false, "",
+				"Module RouteSMSPooler is initiated and ready to serve.", null);
 	}
 
 	public static void initiateJSONRouteSMSProperty(){
@@ -78,8 +81,8 @@ public class RouteSMSPooler {
             	jsonRouteSMSProperty.put(resultSet.getString("routing_id").trim(), jsonDetail);
             }
             
-    		LoggingPooler.doLog(logger, "DEBUG", "RouteSMSPooler", "initiateJSONRouteSMSProperty", false, false, false, "", 
-    				"jsonRouteSMSProperty: " + jsonRouteSMSProperty.toString(), null);
+//    		LoggingPooler.doLog(logger, "DEBUG", "RouteSMSPooler", "initiateJSONRouteSMSProperty", false, false, false, "",
+//    				"jsonRouteSMSProperty: " + jsonRouteSMSProperty.toString(), null);
 		} catch (Exception e) {
 			e.printStackTrace();
     		LoggingPooler.doLog(logger, "INFO", "RouteSMSPooler", "initiateJSONRouteSMSProperty", true, false, false, "", 

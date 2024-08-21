@@ -1,110 +1,27 @@
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\agent\TransactionSummarizer.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\callback\TelinCDR.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\smpp\BlastMeSMPPServerNONTLS21.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\transceiver\TransceiverTelinVoiceBlast.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\PersonalAutogenSender.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\PersonalAutogenSenderScheduler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\callback\TelinCallbackProcessor.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\smpp\EliandrieSMPPServerNeoOLD.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\ContextualProcessorAtlasat.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\transceiver\TransceiverSMPPTOG.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\SMPPDLRPooler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\transceiver\TransceiverTelinVoiceBlastWithThrottling.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\web\api\DoVerifyData.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\WABlastSenderScheduler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\SMSTransactionOperationPooler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\SenderIdSMSPooler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\smpp\BlastMeSMPPServerStaging.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\UserAPIHTTPSMSPooler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\agent\CSVTransactionGenerator.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\neosmppserver\BlastMeNeoSMPPServer.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\VoiceBlastProcessorTelin.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\smpp\BlastMeSMPPServerNONTLS_ART.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\transceiver\TransceiverSMPPTOG_CTSOLD.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\neosmppclient\worldtech\SMPPTransceiver1WorldTech.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\SMSFixANumberSenderIdScheduleProcessor.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\neosmppserver\BlastMeNeoClientDLRSubmitter.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\web\api\DoTool.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\web\api\WebAPI.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\dummy\QuartzCoba.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\transceiver\TransceiverSMPPBStill.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\transceiver\TransceiverSMPPGreembee20.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\neosmppclient\greembee\SMPPTransceiverGreembeeP2P.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\VendorSMSPooler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\DivisionPropertyPooler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\SMSAutoGenANumberProcessorNew.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\RedisPooler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\SMSRouter.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\smpp\BlastMeSMPPServer.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\DataSource.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\transceiver\TransceiverSMPPTelesindo.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\transceiver\TransceiverTelinVoiceBlastWithThrottlingArtatel.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\SMSFixANumberSenderIdProcessor.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\transceiver\TransceiverTelinCPAASX.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\http\SMSBulkHTTPAPIServer.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\UserAPISMPPSMSPooler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\smpp\EliandrieSMPPClient.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\transceiver\TransceiverTelinCPAASWithThrottling.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\neosmppserver\BlastMeNeoSMPPIncomingTrxProcessor.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\ContextualSenderScheduler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\VoiceBlastSender.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\ClientPropertyPooler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\SaveDBRedisTrxDataPooler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\neosmppserver\BlastmeNeoSMPPWAIncomingSubmitter.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\RouteSMSPooler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\transceiver\TransceiverSMPPCakraInternational20.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\SMSFixANumberSenderIdProcessorTAU.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\ContextualProcessorTelin.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\dummy\cobaQuartzJob.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\transceiver\TransceiverSMPPTOG_CTS.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\transceiver\TransceiverTelinCPAASPCUCLIENTWithThrottling.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\transceiver\TransceiverTelinCPAASForMyanmarWithThrottling.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\neosmppserver\BlastMeNeoSMPPSessionHandler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\VoiceBlastSenderScheduler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\SMSFixANumberSenderIdProcessorTelin.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\TransactionStatusPooler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\callback\TelinCDRActor.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\dummy\GoogleGuavaCoba.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\transceiver\TransceiverTelinCPAASDedicatedChina.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\dummy\RabbitMQPumper.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\VendorSMSSenderIdPooler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\WABlastProcessor.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\dlrreceiver\JatisMobileDLRReceiver.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\VoiceBlastProcessorArtatel.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\transceiver\TransceiverSMPPH3I.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\smpp\BlastMeSMPPServerTLS21.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\EmailMultipleBlocker.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\TransactionRedisPooler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\web\api\DoWrapper.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\WABlastSenderNew.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\dummy\XLSXAttachmentIndexPopulator.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\ClientBalancePooler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\SMSAutoGenANumberProcessorNewPasti.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\dummy\CobaConnectPGDB.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\agent\BatchProgressUpdater.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\SMTPSender.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\configuration\Configuration.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\dummy\GenerateANumber.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\LoggingPooler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\web\api\WebRouter.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\SMSFixANumberSenderIdScheduler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\VoiceBlastProcessorIndosat.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\transceiver\TransceiverTelinVoiceBlastWithThrottlingTelin.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\SMPPEnquiryLinkPooler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\neosmppclient\BlastMeNeoSMPPClient.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\transceiver\TransceiverJatisMobile.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\Tool.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\RabbitMQPooler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\TelecomPrefixPooler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\toolpooler\WebSessionIdPooler.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\neosmppclient\macrokiosk\SMPPTransceiverMacroKiosk.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\SMSFixANumberSenderIdProcessorMyantel.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\callback\HTTPTelinCallbackServer.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\VoiceBlastProcessor.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\PersonalAutogenProcessor.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\VoiceBlastProcessorAtlasat.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\VoiceBlastSenderNew.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\router\ContextualSenderNew.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\transceiver\TransceiverTelesindoLongNumber.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\smpp\BlastMeSMPPServer20.java
-D:\GoogleDrive\SyncedProjects\BlastMe\messaging\src\main\java\com\blastme\messaging\smsbulk\transceiver\TransceiverTelinVoiceBlastWithThrottlingIndosat.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\configuration\Configuration.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\SenderIdSMSPooler.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\SMPPDLRPooler.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\EmailMultipleBlocker.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\DivisionPropertyPooler.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\SMTPSender.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\TransactionStatusPooler.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\RabbitMQPooler.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\RouteSMSPooler.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\ClientBalancePooler.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\neosmppserver\BlastMeNeoSMPPServer.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\DataSource.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\TelecomPrefixPooler.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\neosmppserver\BlastMeNeoSMPPSessionHandler.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\TransactionRedisPooler.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\LoggingPooler.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\SaveDBRedisTrxDataPooler.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\UserAPIHTTPSMSPooler.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\Tool.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\RedisPooler.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\neosmppserver\BlastMeNeoSMPPIncomingTrxProcessor.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\neosmppserver\BlastmeNeoSMPPWAIncomingSubmitter.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\SMSTransactionOperationPooler.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\UserAPISMPPSMSPooler.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\ClientPropertyPooler.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\neosmppserver\BlastMeNeoClientDLRSubmitter.java
+C:\Users\muham\Downloads\pcu\PINTAR SERVICE\TENCENT (MIGRATED)\BLASTME\APP\BlastMeJava\src\main\java\com\blastme\messaging\toolpooler\SMPPEnquiryLinkPooler.java

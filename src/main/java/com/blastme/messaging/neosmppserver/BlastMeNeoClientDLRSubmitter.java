@@ -356,7 +356,7 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable{
 						"Client response is saved to table transacion_sms_dlr.", null);
 	        } catch (Exception e) {
 	        	e.printStackTrace();
-				LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "sendRequestPdu", true, false, false, "", 
+				LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "sendRequestPdu", true, false, false, "",
 						"Failed to send PDU to client. Error occured.", e);
 	        }
 	    }
@@ -427,6 +427,7 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable{
 				// Get the SMPPSession
 				SmppServerSession theSession = null;
 				
+				// get multi session but will anomaly DLR send different connection if there multi connection same system id
 				if (BlastMeNeoSMPPServer.mapSession.containsKey(sysSessionId)) {
 					theSession = BlastMeNeoSMPPServer.mapSession.get(sysSessionId);
 				} else {
@@ -439,51 +440,156 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable{
 				}
 				
 				if (theSession != null) {
-					LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId, 
-							"DLR sysId: " + theSysId + " -> found matching SMPPSession: " + theSession.getConfiguration().getName(), null);
+					LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+							"Preparing session: " + theSession.getConfiguration().getName() + ". isBound: " + theSession.isBound(), null);
 
-					
-					// Prepare the DLR
-					int submitCount = 0;
-					int deliveredCount = 0;
-					byte deliveryState = SmppConstants.STATE_DELIVERED;
-					int esmeErrCode = SmppConstants.STATUS_OK;
-					if(status.equals("000")) {
-						submitCount = 1;
-						deliveredCount = 1;
-						deliveryState = SmppConstants.STATE_DELIVERED;
-						esmeErrCode = SmppConstants.STATUS_OK;
-					} else if(status.equals("002")) {
-						submitCount = 1;
-						deliveredCount = 0;
-						deliveryState = SmppConstants.STATE_ACCEPTED;
-						esmeErrCode = SmppConstants.STATUS_OK;
+					boolean isMultiMID = smsTransactionOperationPooler.getUserIsMultiMID(theSysId);
+
+					if (isMultiMID) {
+						String[] strMultipartMesseageIds = jsonTrxDetail.getString("multipart_messeage_ids").split(",");
+						int deliveredCount = 0;
+                        if (strMultipartMesseageIds.length > 0 && !jsonTrxDetail.getString("multipart_messeage_ids").isEmpty()) {
+                            for (String messageIdPart : strMultipartMesseageIds) {
+                                messageId = messageIdPart.trim();
+                                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+                                        "DLR sysId: " + theSysId + " -> found matching SMPPSession: " + theSession.getConfiguration().getName(), null);
+
+                                // Prepare the DLR
+                                int submitCount = 1;
+                                byte deliveryState = SmppConstants.STATE_DELIVERED;
+                                int esmeErrCode = SmppConstants.STATUS_OK;
+                                if (status.equals("000")) {
+                                    deliveredCount = deliveredCount + 1;
+                                    deliveryState = SmppConstants.STATE_DELIVERED;
+                                    esmeErrCode = SmppConstants.STATUS_OK;
+                                } else if (status.equals("002")) {
+                                    deliveredCount = 0;
+                                    deliveryState = SmppConstants.STATE_ACCEPTED;
+                                    esmeErrCode = SmppConstants.STATUS_OK;
+                                } else if (status.equals("105")) {
+                                    deliveryState = SmppConstants.STATE_UNDELIVERABLE;
+                                    esmeErrCode = SmppConstants.STATUS_INVDSTADR;
+                                } else {
+                                    deliveredCount = 0;
+                                    deliveryState = SmppConstants.STATE_REJECTED;
+                                    esmeErrCode = SmppConstants.STATUS_DELIVERYFAILURE;
+                                }
+
+                                DeliveryReceipt dlrReceipt = new DeliveryReceipt(messageId, submitCount, deliveredCount, new DateTime(), new DateTime(), deliveryState, esmeErrCode, theSMS);
+
+                                // Save to DB transaction_sms_dlr - saving db has to be before sendDeliveryReceipt
+                                smsTransactionOperationPooler.saveTransactionDLR(messageId, clientId, LocalDateTime.now(), dlrReceipt.toShortMessage(), status, "SMPP session name " + theSession.getConfiguration().getName());
+                                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+                                        "Data DLR saved in transaction_sms_dlr.", null);
+
+                                Address moSourceAddress = new Address((byte) 0x01, (byte) 0x01, msisdn);
+                                Address moDestinationAddress = new Address((byte) 0x03, (byte) 0x00, theClientSenderId);
+                                byte dataCoding = (byte) 0x00;
+                                if (encoding.equals("UCS2")) {
+                                    dataCoding = (byte) 0x08;
+                                }
+
+                                // Send DLR
+                                sendDeliveryReceipt(theSession, messageId, moSourceAddress, moDestinationAddress, dlrReceipt.toShortMessage().getBytes(), dataCoding);
+                                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+                                        "Sending DLR Part (" + deliveredCount + ") with session: " + theSession.getConfiguration().getName() + ". DLR: " + dlrReceipt.toShortMessage(), null);
+                            }
+                        } else {
+                            LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+                                    "DLR sysId: " + theSysId + " -> found matching SMPPSession: " + theSession.getConfiguration().getName(), null);
+
+                            // Prepare the DLR
+                            int submitCount = 0;
+//                            int deliveredCount = 0;
+                            byte deliveryState = SmppConstants.STATE_DELIVERED;
+                            int esmeErrCode = SmppConstants.STATUS_OK;
+                            if(status.equals("000")) {
+                                submitCount = 1;
+                                deliveredCount = 1;
+                                deliveryState = SmppConstants.STATE_DELIVERED;
+                                esmeErrCode = SmppConstants.STATUS_OK;
+                            } else if(status.equals("002")) {
+                                submitCount = 1;
+                                deliveredCount = 0;
+                                deliveryState = SmppConstants.STATE_ACCEPTED;
+                                esmeErrCode = SmppConstants.STATUS_OK;
+                            } else if(status.equals("105")) {
+                                deliveryState = SmppConstants.STATE_UNDELIVERABLE;
+                                esmeErrCode = SmppConstants.STATUS_INVDSTADR;
+                            } else {
+                                submitCount = 1;
+                                deliveredCount = 0;
+                                deliveryState = SmppConstants.STATE_REJECTED;
+                                esmeErrCode = SmppConstants.STATUS_DELIVERYFAILURE;
+                            }
+
+                            DeliveryReceipt dlrReceipt = new DeliveryReceipt(messageId, submitCount, deliveredCount, new DateTime(), new DateTime(), deliveryState, esmeErrCode, theSMS);
+
+                            // Save to DB transaction_sms_dlr - saving db has to be before sendDeliveryReceipt
+                            smsTransactionOperationPooler.saveTransactionDLR(messageId, clientId, LocalDateTime.now(), dlrReceipt.toShortMessage(), status, "SMPP session name " + theSession.getConfiguration().getName());
+                            LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+                                    "Data DLR saved in transaction_sms_dlr.", null);
+
+                            Address moSourceAddress = new Address((byte)0x01, (byte)0x01, msisdn);
+                            Address moDestinationAddress = new Address((byte)0x03, (byte)0x00, theClientSenderId);
+                            byte dataCoding = (byte) 0x00;
+                            if (encoding.equals("UCS2")) {
+                                dataCoding = (byte) 0x08;
+                            }
+
+                            // Send DLR
+                            sendDeliveryReceipt(theSession, messageId, moSourceAddress, moDestinationAddress, dlrReceipt.toShortMessage().getBytes(), dataCoding);
+                            LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+                                    "Sending DLR with session: " + theSession.getConfiguration().getName() + ". DLR: " + dlrReceipt.toShortMessage(), null);
+                        }
 					} else {
-						submitCount = 1;
-						deliveredCount = 0;
-						deliveryState = SmppConstants.STATE_REJECTED;
-						esmeErrCode = SmppConstants.STATUS_DELIVERYFAILURE;
-					}
-					
-					DeliveryReceipt dlrReceipt = new DeliveryReceipt(messageId, submitCount, deliveredCount, new DateTime(), new DateTime(), deliveryState, esmeErrCode, theSMS);
-										
-					// Save to DB transaction_sms_dlr - saving db has to be before sendDeliveryReceipt
-					smsTransactionOperationPooler.saveTransactionDLR(messageId, clientId, LocalDateTime.now(), dlrReceipt.toShortMessage(), status, "SMPP session name " + theSession.getConfiguration().getName());
-					LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId, 
-							"Data DLR saved in transaction_sms_dlr.", null);
+						LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+								"DLR sysId: " + theSysId + " -> found matching SMPPSession: " + theSession.getConfiguration().getName(), null);
 
-					Address moSourceAddress = new Address((byte)0x01, (byte)0x01, msisdn);
-					Address moDestinationAddress = new Address((byte)0x03, (byte)0x00, theClientSenderId);
-					byte dataCoding = (byte) 0x00;
-					if (encoding.equals("UCS2")) {
-						dataCoding = (byte) 0x08;
+						// Prepare the DLR
+						int submitCount = 0;
+						int deliveredCount = 0;
+						byte deliveryState = SmppConstants.STATE_DELIVERED;
+						int esmeErrCode = SmppConstants.STATUS_OK;
+						if(status.equals("000")) {
+							submitCount = 1;
+							deliveredCount = 1;
+							deliveryState = SmppConstants.STATE_DELIVERED;
+							esmeErrCode = SmppConstants.STATUS_OK;
+						} else if(status.equals("002")) {
+							submitCount = 1;
+							deliveredCount = 0;
+							deliveryState = SmppConstants.STATE_ACCEPTED;
+							esmeErrCode = SmppConstants.STATUS_OK;
+						} else if(status.equals("105")) {
+							deliveryState = SmppConstants.STATE_UNDELIVERABLE;
+							esmeErrCode = SmppConstants.STATUS_INVDSTADR;
+						} else {
+							submitCount = 1;
+							deliveredCount = 0;
+							deliveryState = SmppConstants.STATE_REJECTED;
+							esmeErrCode = SmppConstants.STATUS_DELIVERYFAILURE;
+						}
+
+						DeliveryReceipt dlrReceipt = new DeliveryReceipt(messageId, submitCount, deliveredCount, new DateTime(), new DateTime(), deliveryState, esmeErrCode, theSMS);
+
+						// Save to DB transaction_sms_dlr - saving db has to be before sendDeliveryReceipt
+						smsTransactionOperationPooler.saveTransactionDLR(messageId, clientId, LocalDateTime.now(), dlrReceipt.toShortMessage(), status, "SMPP session name " + theSession.getConfiguration().getName());
+						LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+								"Data DLR saved in transaction_sms_dlr.", null);
+
+						Address moSourceAddress = new Address((byte)0x01, (byte)0x01, msisdn);
+						Address moDestinationAddress = new Address((byte)0x03, (byte)0x00, theClientSenderId);
+						byte dataCoding = (byte) 0x00;
+						if (encoding.equals("UCS2")) {
+							dataCoding = (byte) 0x08;
+						}
+
+						// Send DLR
+						sendDeliveryReceipt(theSession, messageId, moSourceAddress, moDestinationAddress, dlrReceipt.toShortMessage().getBytes(), dataCoding);
+						LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+								"Sending DLR with session: " + theSession.getConfiguration().getName() + ". DLR: " + dlrReceipt.toShortMessage(), null);
 					}
-					
-					// Send DLR
-					sendDeliveryReceipt(theSession, messageId, moSourceAddress, moDestinationAddress, dlrReceipt.toShortMessage().getBytes(), dataCoding);
-					LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId, 
-							"Sending DLR with session: " + theSession.getConfiguration().getName() + ". DLR: " + dlrReceipt.toShortMessage(), null);
-					
 					//theSession.close();
 				} else {
 					LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId, 

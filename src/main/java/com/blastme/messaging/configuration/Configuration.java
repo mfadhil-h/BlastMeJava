@@ -43,7 +43,8 @@ public class Configuration {
 		
 		try{
 			//input = new FileInputStream("D:\\GoogleDrive\\SyncedProjects\\BlastMe\\messaging\\src\\main\\resources\\blastme.properties");
-			input = new FileInputStream("/app/blastme/resources/blastme.properties"); 	// BLASTME PRODUCTION
+			input = new FileInputStream("/pintar/config/blastme.properties"); 	// BLASTME PRODUCTION
+//			input = new FileInputStream("/app/blastme/resources/blastme.properties"); 	// BLASTME PRODUCTION
 			//input = new FileInputStream("/artamaya/config/blastme.properties");
 			//input = new FileInputStream("/pasti/config/blastme.properties");
 			
