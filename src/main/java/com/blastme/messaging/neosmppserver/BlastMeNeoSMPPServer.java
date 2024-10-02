@@ -46,7 +46,6 @@ public class BlastMeNeoSMPPServer {
 	private static Logger logger;
 	
 	private final static int smppPort = 2775;
-	//private final static int smppPort = 2777;			// SMPP PASTI OLD
 	private final static int smppMaxConnection = 500;
 	private final static int smppRequestExpiryTimeout = 30000;
 	private final static int smppWindowMonitorInterval = 15000;
@@ -75,8 +74,7 @@ public class BlastMeNeoSMPPServer {
 		try {
 			// Initiate RedisPooler
 			redisPooler = new RedisPooler();
-			//redisCommand = redisPooler.redisInitiateConnection();
-						
+
 			// Initiate RabbitMQPooler
 			new RabbitMQPooler();		
 
@@ -87,10 +85,7 @@ public class BlastMeNeoSMPPServer {
 			new SenderIdSMSPooler();
 
 			// Initiate RouteSMSPooler
-			new RouteSMSPooler();	
-
-//			// Initiate SenderIdSMSPooler
-//			new SenderIdSMSPooler();
+			new RouteSMSPooler();
 		} catch (Exception e) {
 			e.printStackTrace();
 
@@ -113,21 +108,7 @@ public class BlastMeNeoSMPPServer {
 	        configuration.setDefaultWindowWaitTimeout(configuration.getDefaultRequestExpiryTimeout());
 	        configuration.setDefaultSessionCountersEnabled(true);
 	        configuration.setJmxEnabled(true);
-	        
-//	        // Enable smpp configuration for SSL configuration
-//	        SslConfiguration sslConfig = new SslConfiguration();
-//	        sslConfig.setKeyStorePath("/app/certificate/pintar2020.jks");
-//	        sslConfig.setKeyStorePassword("cakep123");
-//	        //sslConfig.setKeyManagerPassword("cakep123");
-//	        sslConfig.setTrustStorePath("/app/certificate/pintar2020.jks");
-//	    	sslConfig.setTrustStorePassword("cakep123");
-//	        //sslConfig.setTrustAll(true); //- Kalao gak ada ditemukan jks nya, makanya trust all certificate
-//	        
-//	        configuration.setSslConfiguration(sslConfig);
-//	        configuration.setUseSsl(true);
-	
-	        // create a server, start it up
-	        // DefaultSmppServer smppServer = new DefaultSmppServer(configuration, new DefaultSmppServerHandler(), executor, monitorExecutor);
+
 	        DefaultSmppServer smppServer = new DefaultSmppServer(configuration, new NeoSmppServerHandler(), executor);
 	
 	        logger.info("Starting NEO SMPP server...");
@@ -192,10 +173,6 @@ public class BlastMeNeoSMPPServer {
         		// Run executor DLR Client		
         		System.out.println("Executing CLIENTDLRSUBMITTER.");
         		execClientDLR.schedule(new BlastMeNeoClientDLRSubmitter(), 10, TimeUnit.SECONDS);
-//        		execClientDLR.schedule(new BlastMeNeoClientDLRSubmitter(), 10, TimeUnit.SECONDS);
-//        		execClientDLR.schedule(new BlastMeNeoClientDLRSubmitter(), 10, TimeUnit.SECONDS);
-//        		execClientDLR.schedule(new BlastMeNeoClientDLRSubmitter(), 10, TimeUnit.SECONDS);
-//        		execClientDLR.schedule(new BlastMeNeoClientDLRSubmitter(), 10, TimeUnit.SECONDS);
         		execClientMOWAMessage.schedule(new BlastmeNeoSMPPWAIncomingSubmitter(), 10, TimeUnit.SECONDS);
         	} catch (Exception e) {
         		e.printStackTrace();
@@ -209,13 +186,10 @@ public class BlastMeNeoSMPPServer {
 		public void sessionBindRequested(Long sessionId, SmppSessionConfiguration sessionConfiguration,
 				@SuppressWarnings("rawtypes") BaseBind bindRequest) throws SmppProcessingException {
 			
-			//sessionConfiguration.setName(sessionConfiguration.getSystemId());
-            
             String systemId = sessionConfiguration.getSystemId();
             String password = sessionConfiguration.getPassword();
             String remoteIpAddress = sessionConfiguration.getHost();
-            //String clientId = userApiSMPPSMSPooler.getClientId(systemId);
-            
+
 			LoggingPooler.doLog(logger, "DEBUG", "BlastMeSMPPServer - DefaultSmppServerHandler", "sessionBindRequested", false, false, true, "", 
 					"Incoming binding request - systemId: " + systemId + ", remoteIpAddress: " + remoteIpAddress, null);				
             
@@ -238,7 +212,7 @@ public class BlastMeNeoSMPPServer {
 					// Verify the password
 					BCrypt.Result result = BCrypt.verifyer().verify(password.getBytes(StandardCharsets.UTF_8), configPassword.getBytes());
 					
-					if (result.verified == true) {
+					if (result.verified) {
 						// PASSWORD VERIFIED
 						LoggingPooler.doLog(logger, "DEBUG", "NeoSmppServerHandler", "sessionBindRequested", false, false, true, "", 
 								"Incoming binding request - systemId: " + systemId + ", remoteIpAddress: " + remoteIpAddress + ", PASSWORD IS VERIFIED.", null);

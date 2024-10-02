@@ -85,77 +85,20 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 
 	private Charset getCharsetByDataCoding(byte dataCoding) {
 		Charset theCharSet = CharsetUtil.CHARSET_GSM; // DEFAULT is GSM7
-		
-    	// character encoding constants
-        /** SMSC Default Alphabet (default) */
-        //public static final byte CHAR_ENC_DEFAULT = 0x00;
-        /** IA5 (CCITT T.50)/ASCII (ANSI X3.4) */
-        //public static final byte CHAR_ENC_IA5 = 0x01;
-        /** Octet unspecified (8-bit binary) defined for TDMA and/ or CDMA but not defined for GSM */
-        //public static final byte CHAR_ENC_8BITA = 0x02;
-        /** Latin 1 (ISO-8859-1) */
-        //public static final byte CHAR_ENC_LATIN1 = 0x03;
-        /** Octet unspecified (8-bit binary) ALL TECHNOLOGIES */
-        //public static final byte CHAR_ENC_8BIT = 0x04;
-        /** JIS (X 0208-1990) */
-        //public static final byte CHAR_ENC_JIS = 0x05;
-        /** Cyrllic (ISO-8859-5) */
-        //public static final byte CHAR_ENC_CYRLLIC = 0x06;
-        /** Latin/Hebrew (ISO-8859-8) */
-        //public static final byte CHAR_ENC_HEBREW = 0x07;
-        /** UCS2 (ISO/IEC-10646) */
-        //public static final byte CHAR_ENC_UCS2 = 0x08;
-        /** Pictogram Encoding */
-        //public static final byte CHAR_ENC_PICTO = 0x09;
-        /** ISO-2022-JP (Music Codes) */
-        //public static final byte CHAR_ENC_MUSIC = 0x0A;
-        /** Reserved: 0x0B */
-        //public static final byte CHAR_ENC_RSRVD = 0x0B;
-        /** Reserved: 0x0C */
-        //public static final byte CHAR_ENC_RSRVD2 = 0x0C;
-        /** Extended Kanji JIS(X 0212-1990) */
-        //public static final byte CHAR_ENC_EXKANJI = 0x0D;
-        /** KS C 5601 */
-        //public static final byte CHAR_ENC_KSC5601 = 0x0E;
-        /** Reserved: 0x0F */
-        //public static final byte CHAR_ENC_RSRVD3 = 0x0F;
-		
+
 		try {
 			switch(dataCoding) {
-				case (byte) 0x00:	theCharSet = CharsetUtil.CHARSET_GSM;
+				case (byte) 0x00:
+                    break;
+				case (byte) 0x04:
+                case (byte) 0x06:
+                case (byte) 0x07:
+                case (byte) 0x08:
+                case (byte) 0x0D:
+                    theCharSet = CharsetUtil.CHARSET_UCS_2;
 									break;
-//				case (byte) 0x01:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-//									break;
-//				case (byte) 0x02:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-//									break;
-//				case (byte) 0x03:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-//									break;
-				case (byte) 0x04:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-									break;
-//				case (byte) 0x05:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-//									break;
-				case (byte) 0x06:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-									break;
-				case (byte) 0x07:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-									break;
-				case (byte) 0x08:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-									break;
-//				case (byte) 0x09:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-//									break;
-//				case (byte) 0x0A:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-//									break;
-//				case (byte) 0x0B:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-//									break;
-//				case (byte) 0x0C:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-//									break;
-				case (byte) 0x0D:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-									break;
-//				case (byte) 0x0E:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-//									break;
-//				case (byte) 0x0F:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-//									break;
-				default:			theCharSet = CharsetUtil.CHARSET_GSM;
-									break;
+                default:
+                    break;
 			}
 			
 			LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPSessionHandler", "getCharsetByDataCoding - " + this.blastmeSessionId, false, false, false, "", 
@@ -173,8 +116,7 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 	
     private HashMap<String, String> combineMessage(String origin, String destination, String messageId, int byteId, int totalMessageCount, int currentCount, byte[] shortMessagePart) {
     	byte[] combinedMessage = new byte[] {};
-		int currentIndex = 0;
-		HashMap<String, String> result = new HashMap<String, String>();
+        HashMap<String, String> result = new HashMap<String, String>();
 		StringBuilder messageAllIds = new StringBuilder();
 		String tempMessageId = messageId;
 
@@ -245,11 +187,8 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
             	combinedMessage = xByte; 
         	}
 			encodedByte = Base64.encodeBytes(combinedMessage);
-    	} else {
-    		// Do nothing
     	}
 		result.put("encoded_byte", encodedByte);
-//		result.put("current_index", String.valueOf(currentIndex));
 		result.put("first_message_id", messageId);
 		result.put("temp_message_id", tempMessageId);
 		result.put("message_all_ids", String.valueOf(messageAllIds));
@@ -301,7 +240,6 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 						this.blastmeSessionId + " - " + session.getConfiguration().getSystemId() + " - Assigning messageId: " + messageId, null);
                 
 				// Check if message with UDH
-				//DeliverSm moMessage = (DeliverSm) pduRequest;
                 SubmitSm mt = (SubmitSm) pduRequest;
 				
 				boolean isUdh = SmppUtil.isUserDataHeaderIndicatorEnabled(mt.getEsmClass());
@@ -340,19 +278,7 @@ public class BlastMeNeoSMPPSessionHandler extends DefaultSmppSessionHandler {
 	                byte dataCoding = mt.getDataCoding();
 					byte[] shortMessage = GsmUtil.getShortMessageUserData(mt.getShortMessage());
 					
-					
 	    			Charset theCharset = getCharsetByDataCoding(dataCoding);
-	    			
-//	    			String messageEncoding = "GSM";
-//	    			if (theCharset == CharsetUtil.CHARSET_GSM) {
-//	    				messageEncoding = "GSM";
-//	    			} else if (theCharset == CharsetUtil.CHARSET_GSM7) {
-//	    				messageEncoding = "GSM";
-//	    			} else if (theCharset == CharsetUtil.CHARSET_UTF_8) {
-//	    				messageEncoding = "UCS2";
-//	    			} else {
-//	    				messageEncoding = "UCS2";
-//	    			}
 	    			
 	    			String theSMSPart = CharsetUtil.decode(shortMessage, theCharset);						
 					LoggingPooler.doLog(logger, "DEBUG", "BlastmeNeoSMPPSessionHandler", "firePduRequestReceived", false, false, true, "",

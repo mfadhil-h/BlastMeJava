@@ -38,9 +38,6 @@ public class BlastmeNeoSMPPWAIncomingSubmitter implements Runnable {
 	
 	private RabbitMQPooler rabbitMqPooler;
 	private Channel channel;
-
-//	private RedisPooler redisPooler;
-//	private RedisCommands<String, String> redisCommand;
 	
 	public BlastmeNeoSMPPWAIncomingSubmitter() {
 		try {
@@ -48,10 +45,6 @@ public class BlastmeNeoSMPPWAIncomingSubmitter implements Runnable {
 			logger = LogManager.getLogger("SMPP_SERVER");
 						
 			rabbitMqPooler = new RabbitMQPooler();
-		
-			// Initiate redisPooler
-//			redisPooler = new RedisPooler();
-//			redisCommand = redisPooler.redisInitiateConnection();
 		
 			Connection connection = rabbitMqPooler.getConnection();
 			channel = rabbitMqPooler.getChannel(connection);
@@ -120,13 +113,8 @@ public class BlastmeNeoSMPPWAIncomingSubmitter implements Runnable {
 			String waMessageId = jsonMessage.getString("message_id");
 			String contactId = jsonMessage.getString("contact_id");
 			String waId = "16502636146";
-			String waMessage = queueMessage;
-			
-			// Get sysSessionId 
-//			LoggingPooler.doLog(logger, "DEBUG", "BlastMeSMPPServer - ClientDLRSubmmiter", "proccessClientMOWABAMessage", false, false, false, waMessageId, 
-//					"jsonClientIdToAccess: " + UserAPISMPPSMSPooler.jsonClientIdToAccess.toString(), null);
-			
-			JSONObject jsonDetail = UserAPISMPPSMSPooler.jsonClientIdToAccess.getJSONObject(clientId);
+
+            JSONObject jsonDetail = UserAPISMPPSMSPooler.jsonClientIdToAccess.getJSONObject(clientId);
 			LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPWAIncomingSubmitter", "proccessClientWABAMessage", false, false, false, waMessageId, 
 					"jsonDetail: " + jsonDetail.toString(), null);
 			
@@ -160,9 +148,9 @@ public class BlastmeNeoSMPPWAIncomingSubmitter implements Runnable {
 						"clientId: " + clientId + " -> SMPP sysId: " + theSysId + " -> found matching SMPPSession: " + theSession.getConfiguration().getName(), null);
 
 				// Send to client using the session
-				sendClientMessageRequestPdu(theSession, waMessageId, contactId, waId, waMessage, "UTF-8");	
+				sendClientMessageRequestPdu(theSession, waMessageId, contactId, waId, queueMessage, "UTF-8");
 				LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPWAIncomingSubmitter", "proccessClientWABAMessage", false, false, false, waMessageId, 
-						"Sending MO Message with session: " + theSession.getConfiguration().getName() + ". MO Message: " + waMessage, null);
+						"Sending MO Message with session: " + theSession.getConfiguration().getName() + ". MO Message: " + queueMessage, null);
 			}
 		} catch (Exception e) {
 			LoggingPooler.doLog(logger, "INFO", "BlastMeNeoSMPPWAIncomingSubmitter", "proccessClientWABAMessage", true, false, true, "", 
