@@ -38,9 +38,6 @@ public class BlastmeNeoSMPPWAIncomingSubmitter implements Runnable {
 	
 	private RabbitMQPooler rabbitMqPooler;
 	private Channel channel;
-
-//	private RedisPooler redisPooler;
-//	private RedisCommands<String, String> redisCommand;
 	
 	public BlastmeNeoSMPPWAIncomingSubmitter() {
 		try {
@@ -48,10 +45,6 @@ public class BlastmeNeoSMPPWAIncomingSubmitter implements Runnable {
 			logger = LogManager.getLogger("SMPP_SERVER");
 						
 			rabbitMqPooler = new RabbitMQPooler();
-		
-			// Initiate redisPooler
-//			redisPooler = new RedisPooler();
-//			redisCommand = redisPooler.redisInitiateConnection();
 		
 			Connection connection = rabbitMqPooler.getConnection();
 			channel = rabbitMqPooler.getChannel(connection);
@@ -121,10 +114,6 @@ public class BlastmeNeoSMPPWAIncomingSubmitter implements Runnable {
 			String contactId = jsonMessage.getString("contact_id");
 			String waId = "16502636146";
 			String waMessage = queueMessage;
-			
-			// Get sysSessionId 
-//			LoggingPooler.doLog(logger, "DEBUG", "BlastMeSMPPServer - ClientDLRSubmmiter", "proccessClientMOWABAMessage", false, false, false, waMessageId, 
-//					"jsonClientIdToAccess: " + UserAPISMPPSMSPooler.jsonClientIdToAccess.toString(), null);
 			
 			JSONObject jsonDetail = UserAPISMPPSMSPooler.jsonClientIdToAccess.getJSONObject(clientId);
 			LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPWAIncomingSubmitter", "proccessClientWABAMessage", false, false, false, waMessageId, 

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Objects;
 
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
@@ -37,36 +38,35 @@ import com.rabbitmq.client.MessageProperties;
 import io.lettuce.core.api.sync.RedisCommands;
 
 class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
-	private WeakReference<SmppSession> sessionRef;
-	private String messageId;
-	private String systemId;
-	private String remoteIpAddress;
-	private String allMessageIds;
-	private String clientSenderId;
-	private String msisdn;
-	private byte[] bShortMessage;
-	private String shortMessage;
-	private byte dataCoding;
-	private String clientId;
+	private final WeakReference<SmppSession> sessionRef;
+	private final String messageId;
+	private final String systemId;
+	private final String remoteIpAddress;
+	private final String allMessageIds;
+	private final String clientSenderId;
+	private final String msisdn;
+    private final String shortMessage;
+	private final byte dataCoding;
+	private final String clientId;
 	private String messageEncoding = "GSM";
 	
-	private Address mtSourceAddress;
-	private Address mtDestinationAddress;
+	private final Address mtSourceAddress;
+	private final Address mtDestinationAddress;
 	
 	// Session ID
-	private String sessionId;
+	private final String sessionId;
 	
 	private static Logger logger;
-	private static String SMSQueueName = "SMPP_INCOMING";
+	private static final String SMSQueueName = "SMPP_INCOMING";
 	
 	// SUPPORTING CLASSES
-	private ClientPropertyPooler clientPropertyPooler;
-	private ClientBalancePooler clientBalancePooler;
-	private SMSTransactionOperationPooler smsTransactionOperationPooler;
-	private RabbitMQPooler rabbitMqPooler;
-	private Connection rabbitMqConnection;
-	private RedisPooler redisPooler;
-	private RedisCommands<String, String> redisCommand;
+	private final ClientPropertyPooler clientPropertyPooler;
+	private final ClientBalancePooler clientBalancePooler;
+	private final SMSTransactionOperationPooler smsTransactionOperationPooler;
+	private final RabbitMQPooler rabbitMqPooler;
+	private final Connection rabbitMqConnection;
+	private final RedisPooler redisPooler;
+	private final RedisCommands<String, String> redisCommand;
 
 	public BlastmeNeoSMPPIncomingTrxProcessor(String theMessageId, String theSystemId, String theRemoteIpAddress, String allMessageIds, String theClientSenderId, String theMsisdn,
 			byte[] theShortMessage, byte theDataCoding, String theClientId, Address theMtSourceAddress, Address theMtDestinationAddress,
@@ -79,14 +79,13 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 		this.allMessageIds = allMessageIds;
 		this.clientSenderId = theClientSenderId;
 		this.msisdn = theMsisdn;
-		this.bShortMessage = theShortMessage;
-		this.dataCoding = theDataCoding;
+        this.dataCoding = theDataCoding;
 		this.clientId = theClientId;
 		this.mtSourceAddress = theMtSourceAddress;
 		this.mtDestinationAddress = theMtDestinationAddress;
 		
 		this.sessionRef = theSessionRef;
-		this.sessionId = theSessionRef.get().getConfiguration().getName();
+		this.sessionId = Objects.requireNonNull(theSessionRef.get()).getConfiguration().getName();
 		
 		this.clientPropertyPooler = theClientPropertyPooler;
 		this.clientBalancePooler = theClientBalancePooler;
@@ -112,87 +111,28 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 		}
 		
 		// Get the shortMessage
-		this.shortMessage = CharsetUtil.decode(bShortMessage, theCharset);
+		this.shortMessage = CharsetUtil.decode(theShortMessage, theCharset);
 	
 		LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor", "BlastMeNeoSMPPIncomingTrxProcessor", false, false, false, messageId, 
 				"Session ID: " + sessionId + ". Incoming trx - messageId: " + this.messageId + ", clientSenderId: " + this.clientSenderId + ", msisdn: " + this.msisdn + 
-				", dataCoding" + this.dataCoding + ", bShortMessage: " + this.bShortMessage + ", charSet: " + theCharset + ", shortmessage: " +
+				", dataCoding" + this.dataCoding + ", bShortMessage: " + Arrays.toString(theShortMessage) + ", charSet: " + theCharset + ", shortmessage: " +
 				this.shortMessage + ", clientId: " + this.clientId, null);				
 	}
 	
 	private Charset getCharsetByDataCoding(byte dataCoding) {
 		Charset theCharSet = CharsetUtil.CHARSET_GSM; // DEFAULT is GSM7
-		
-    	// character encoding constants
-        /** SMSC Default Alphabet (default) */
-        //public static final byte CHAR_ENC_DEFAULT = 0x00;
-        /** IA5 (CCITT T.50)/ASCII (ANSI X3.4) */
-        //public static final byte CHAR_ENC_IA5 = 0x01;
-        /** Octet unspecified (8-bit binary) defined for TDMA and/ or CDMA but not defined for GSM */
-        //public static final byte CHAR_ENC_8BITA = 0x02;
-        /** Latin 1 (ISO-8859-1) */
-        //public static final byte CHAR_ENC_LATIN1 = 0x03;
-        /** Octet unspecified (8-bit binary) ALL TECHNOLOGIES */
-        //public static final byte CHAR_ENC_8BIT = 0x04;
-        /** JIS (X 0208-1990) */
-        //public static final byte CHAR_ENC_JIS = 0x05;
-        /** Cyrllic (ISO-8859-5) */
-        //public static final byte CHAR_ENC_CYRLLIC = 0x06;
-        /** Latin/Hebrew (ISO-8859-8) */
-        //public static final byte CHAR_ENC_HEBREW = 0x07;
-        /** UCS2 (ISO/IEC-10646) */
-        //public static final byte CHAR_ENC_UCS2 = 0x08;
-        /** Pictogram Encoding */
-        //public static final byte CHAR_ENC_PICTO = 0x09;
-        /** ISO-2022-JP (Music Codes) */
-        //public static final byte CHAR_ENC_MUSIC = 0x0A;
-        /** Reserved: 0x0B */
-        //public static final byte CHAR_ENC_RSRVD = 0x0B;
-        /** Reserved: 0x0C */
-        //public static final byte CHAR_ENC_RSRVD2 = 0x0C;
-        /** Extended Kanji JIS(X 0212-1990) */
-        //public static final byte CHAR_ENC_EXKANJI = 0x0D;
-        /** KS C 5601 */
-        //public static final byte CHAR_ENC_KSC5601 = 0x0E;
-        /** Reserved: 0x0F */
-        //public static final byte CHAR_ENC_RSRVD3 = 0x0F;
-		
+
 		try {
 			switch(dataCoding) {
-				case (byte) 0x00:	theCharSet = CharsetUtil.CHARSET_GSM;
+				case (byte) 0x04:
+                case (byte) 0x06:
+                case (byte) 0x07:
+                case (byte) 0x08:
+                case (byte) 0x0D:
+                    theCharSet = CharsetUtil.CHARSET_UCS_2;
 									break;
-//				case (byte) 0x01:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-//									break;
-//				case (byte) 0x02:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-//									break;
-//				case (byte) 0x03:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-//									break;
-				case (byte) 0x04:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-									break;
-//				case (byte) 0x05:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-//									break;
-				case (byte) 0x06:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-									break;
-				case (byte) 0x07:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-									break;
-				case (byte) 0x08:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-									break;
-//				case (byte) 0x09:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-//									break;
-//				case (byte) 0x0A:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-//									break;
-//				case (byte) 0x0B:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-//									break;
-//				case (byte) 0x0C:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-//									break;
-				case (byte) 0x0D:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-									break;
-//				case (byte) 0x0E:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-//									break;
-//				case (byte) 0x0F:	theCharSet = CharsetUtil.CHARSET_UCS_2;
-//									break;
-				default:			theCharSet = CharsetUtil.CHARSET_GSM;
-									break;
+                default:
+                    break;
 			}
 			
 			LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor", "getCharsetByDataCoding", false, false, false, messageId, 
@@ -639,7 +579,7 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 			boolean found = Arrays.asList(vendorWhatsapp).contains(vendorId);
 			LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor", "doProcessTheSMS",
 					false, false, true, messageId,
-							this.systemId + " - found: " + String.valueOf(found), null);
+							this.systemId + " - found: " + found, null);
 
 			if (found) {
 				messageEncoding = "WHATSAPP";
@@ -651,12 +591,6 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 			
 			// Save initial data
 			System.out.println("Save " + this.messageId);
-			// String messageId, LocalDateTime receiverDateTime, String batchId, String receiverData, 
-			// String receiverClientResponse, String receiverclientIpAddress, LocalDateTime clientResponseDateTime, 
-			// LocalDateTime trxDateTime, String msisdn, String message, String countryCode, String prefix, 
-			// String telecomId, String trxStatus, String receiverType, String clientSenderIdId, String clientSenderId, 
-			// String clientId, String apiUserName, double clientUnitPrice, String currency, String messageEncoding, 
-			// int messageLength, int smsCount, String deliveryStatus
 			String receiverData = "SMPP: clientSenderId: " + this.clientSenderId + ", msisdn: " + this.msisdn + ", message: " + this.shortMessage + ", dataCoding" + dataCoding;
 			String receiverResponse = "errorCode: " + errorCode + ", deliveryStatus: " + deliveryState;
 			LocalDateTime responseDateTime = LocalDateTime.now();
@@ -711,14 +645,14 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 				jsonIncoming.put("encoding", messageEncoding);
 
 				LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor", "doProcessTheSMS - " + this.sessionId, false, false, false, messageId, 
-						"jsonIncoming: " + jsonIncoming.toString(), null);				
+						"jsonIncoming: " + jsonIncoming, null);
 
 				Channel channel = rabbitMqPooler.getChannel(rabbitMqConnection);
 				
 				channel.queueDeclare(SMSQueueName, true, false, false, null);
 				channel.basicPublish("", SMSQueueName, MessageProperties.PERSISTENT_TEXT_PLAIN, jsonIncoming.toString().getBytes());
 				LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor", "doProcessTheSMS - " + this.sessionId, false, false, false, messageId, 
-						"jsonIncoming: " + jsonIncoming.toString() + " published SUCCESSfully!", null);
+						"jsonIncoming: " + jsonIncoming + " published SUCCESSfully!", null);
 				
 				channel.close();
 			}

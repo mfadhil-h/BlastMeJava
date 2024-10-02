@@ -91,163 +91,13 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable{
 					"Failed to initialize channle rabbitMq to queueName " + DLRQUEUE, e);
 		}
 	}
-	
-//	@SuppressWarnings("rawtypes")
-//	private void sendRequestPdu(SmppSession session, String messageId, DeliverSm deliver) {
-//        try {
-//            WindowFuture<Integer,PduRequest,PduResponse> future = session.sendRequestPdu(deliver, 10000, false);
-//            
-//            String clientResp = "";
-//            if (!future.await()) {
-//            	clientResp = "Failed to receive DELIVER_SM_RESP within specified time";
-//            } else if (future.isSuccess()) {
-//            	DeliverSmResp deliverSmResp = (DeliverSmResp)future.getResponse();
-//            	clientResp = "deliver_sm_resp: commandStatus [" + deliverSmResp.getCommandStatus() + "=" + deliverSmResp.getResultMessage() + "]";
-//            } else {
-//                clientResp = "Failed to properly receive deliver_sm_resp: " + future.getCause();
-//            }
-//			LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "sendRequestPdu", false, false, false, "", 
-//					clientResp, null);
-//			
-//			// Update transaction DLR for clientResponse
-//			smsTransactionOperationPooler.updateTransactionDLR(messageId, clientResp);
-//			LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "sendRequestPdu", false, false, false, "", 
-//					"Client response is saved to table transacion_sms_dlr.", null);
-//        } catch (Exception e) {
-//        	e.printStackTrace();
-//			LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "sendRequestPdu", true, false, false, "", 
-//					"Failed to send PDU to client. Error occured.", e);
-//        }
-//    }
-//    
-//    private void sendDeliveryReceipt(SmppSession session, String messageId, Address mtDestinationAddress, Address mtSourceAddress, byte[] shortMessage, byte dataCoding) {
-//
-//        try {
-//            DeliverSm deliver = new DeliverSm();
-//            deliver.setEsmClass(SmppConstants.ESM_CLASS_MT_SMSC_DELIVERY_RECEIPT);
-//            deliver.setSourceAddress(mtDestinationAddress);
-//            deliver.setDestAddress(mtSourceAddress);
-//            deliver.setDataCoding(dataCoding);
-//            deliver.setShortMessage(shortMessage);
-//
-//            sendRequestPdu(session, messageId, deliver);
-//           
-//        } catch (Exception e) {
-//        	LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "sendRequestPdu", true, false, false, "", 
-//					"Failed sending delivery report.", e);
-//        }
-//    }
-	
+
 	private void proccessClientDLR(String queueMessage) {
 		LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, true, "", 
 				"Processing queue DRL with message: " + queueMessage, null);
 		
 		sendClientDR drSender = new sendClientDR(queueMessage);
-        //Thread t = new Thread(drSender);
-        //t.start();
 		executorDLRSubmitter.submit(drSender);
-		
-//		try{
-//			JSONObject jsonMessage = new JSONObject(queueMessage);
-//			
-//			String messageId = jsonMessage.getString("messageId");
-//			//String status = jsonMessage.getString("errorCode");
-//			String status = jsonMessage.getString("status");
-//			String msisdn = jsonMessage.getString("msisdn");
-//			
-//			// Get sessionId yang digunakan utk terima message, spy DR menggunakan session yang sama
-//			String sysSessionId = "";
-//			if(jsonMessage.has("sysSessionId")){
-//				sysSessionId = jsonMessage.getString("sysSessionId");
-//			}
-//			
-//			// Get message and systemId and clientSenderId
-//			String redisKey = "trxdata-" + messageId.trim();
-//			String redisVal = redisPooler.redisGet(redisCommand, redisKey);
-//			
-//			LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId, 
-//					"messageId: " + messageId + ", status: " + status + ", msisdn: " + msisdn + ", trxdata value " + redisVal, null);
-//			
-//			JSONObject jsonTrxDetail = smsTransactionOperationPooler.getTransactionDetail(messageId);
-//			
-//			String theSMS = jsonTrxDetail.getString("message");
-//			String theSysId = jsonTrxDetail.getString("apiUserName").trim();
-//			String theClientSenderId = jsonTrxDetail.getString("clientSenderId").trim();
-//			String clientId = jsonTrxDetail.getString("clientId");
-//			String encoding = jsonTrxDetail.getString("encoding");
-//			
-//			LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId, 
-//					"messageId: " + messageId + ", theSMS: " + theSMS, null);
-//			
-//			// Get the SMPPSession
-//			SmppServerSession theSession = null;
-//			
-//			if (BlastMeNeoSMPPServer.mapSession.containsKey(sysSessionId)) {
-//				theSession = BlastMeNeoSMPPServer.mapSession.get(sysSessionId);
-//			} else {
-//				// Cari mapSession dengan sysSessionId starts with systemId
-//				for (Entry<String, SmppServerSession> entry: BlastMeNeoSMPPServer.mapSession.entrySet()) {
-//					if (entry.getKey().startsWith(theSysId)) {
-//						theSession = entry.getValue();
-//					}
-//				}
-//			}
-//			
-//			if (theSession != null) {
-//				LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId, 
-//						"DLR sysId: " + theSysId + " -> found matching SMPPSession: " + theSession.getConfiguration().getName(), null);
-//
-//				// Prepare the DLR
-//				int submitCount = 0;
-//				int deliveredCount = 0;
-//				byte deliveryState = SmppConstants.STATE_DELIVERED;
-//				int esmeErrCode = SmppConstants.STATUS_OK;
-//				if(status.equals("000")) {
-//					submitCount = 1;
-//					deliveredCount = 1;
-//					deliveryState = SmppConstants.STATE_DELIVERED;
-//					esmeErrCode = SmppConstants.STATUS_OK;
-//				} else if(status.equals("002")) {
-//					submitCount = 1;
-//					deliveredCount = 0;
-//					deliveryState = SmppConstants.STATE_ACCEPTED;
-//					esmeErrCode = SmppConstants.STATUS_OK;
-//				} else {
-//					submitCount = 1;
-//					deliveredCount = 0;
-//					deliveryState = SmppConstants.STATE_REJECTED;
-//					esmeErrCode = SmppConstants.STATUS_DELIVERYFAILURE;
-//				}
-//				
-//				DeliveryReceipt dlrReceipt = new DeliveryReceipt(messageId, submitCount, deliveredCount, new DateTime(), new DateTime(), deliveryState, esmeErrCode, theSMS);
-//									
-//				// Save to DB transaction_sms_dlr - saving db has to be before sendDeliveryReceipt
-//				smsTransactionOperationPooler.saveTransactionDLR(messageId, clientId, LocalDateTime.now(), dlrReceipt.toShortMessage(), status, "SMPP session name " + theSession.getConfiguration().getName(), "", "");
-//				LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId, 
-//						"Data DLR saved in transaction_sms_dlr.", null);
-//
-//				Address moSourceAddress = new Address((byte)0x01, (byte)0x01, msisdn);
-//				Address moDestinationAddress = new Address((byte)0x03, (byte)0x00, theClientSenderId);
-//				byte dataCoding = (byte) 0x00;
-//				if (encoding.equals("UCS2")) {
-//					dataCoding = (byte) 0x08;
-//				}
-//				
-//				// Send DLR
-//				sendDeliveryReceipt(theSession, messageId, moSourceAddress, moDestinationAddress, dlrReceipt.toShortMessage().getBytes(), dataCoding);
-//				LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId, 
-//						"Sending DLR with session: " + theSession.getConfiguration().getName() + ". DLR: " + dlrReceipt.toShortMessage(), null);
-//				
-//				//theSession.close();
-//			} else {
-//				LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId, 
-//						"CAN NOT FIND MATCHING SESSIONID FOR THE DLR. IGNORE THE DLR.", null);	
-//			}
-//		} catch (Exception e) {
-//			LoggingPooler.doLog(logger, "INFO", "BlastMeNeoClientDLRSubmitter", "processDlrQueue", true, false, true, "", 
-//					"Failed to process the DLR message.", e);
-//			//SMPPDLRPooler.sendSMPPPreviouslyFailedDLR("", queueMessage);
-//		} 
 	}
 	
 	private void readDLRQueue() {
@@ -303,30 +153,22 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable{
 		try {
 			LoggingPooler.doLog(logger, "INFO", "BlastMeNeoClientDLRSubmitter", "RUN", false, false, true, "", 
 					"Starting DLR Submitter.", null);
-			
-			
+
 			readDLRQueue();		
 			
 			LoggingPooler.doLog(logger, "INFO", "BlastMeNeoClientDLRSubmitter", "RUN", false, false, true, "", 
 					"Done reading queue 1", null);
-			
-//			channel = rabbitMqPooler.getChannel(connection);
-//			readDLRQueue();
-//			
-//			LoggingPooler.doLog(logger, "INFO", "BlastMeNeoClientDLRSubmitter", "RUN", false, false, true, "", 
-//					"Done reading queue 2", null);
 		} catch (Exception e) {
 			e.printStackTrace();
 			
 			LoggingPooler.doLog(logger, "INFO", "BlastMeNeoClientDLRSubmitter", "RUN", true, false, true, "", 
 					"Failed to start Client DLR Submitter. Error occurs.", e);
 		}
-	} 
-	
+	}
 	
 	// Sending DR thread
 	public class sendClientDR implements Runnable {
-		private String queueMessage;
+		private final String queueMessage;
 		
 		public sendClientDR(String theQueueMessage) {
 			this.queueMessage = theQueueMessage;
@@ -350,7 +192,6 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable{
 						clientResp, null);
 				
 				// Update transaction DLR for clientResponse
-				//smsTransactionOperationPooler.updateTransactionDLR(messageId, clientResp);
 				smsTransactionOperationPooler.insertTransactionDLRClientResponse(messageId, clientResp);
 				LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "sendRequestPdu", false, false, false, "", 
 						"Client response is saved to table transacion_sms_dlr.", null);
@@ -388,7 +229,6 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable{
 				JSONObject jsonMessage = new JSONObject(queueMessage);
 				
 				String messageId = jsonMessage.getString("messageId");
-				//String status = jsonMessage.getString("errorCode");
 				String status = jsonMessage.getString("status");
 				String msisdn = jsonMessage.getString("msisdn");
 				String originMessageId = "";
@@ -500,7 +340,6 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable{
 
                             // Prepare the DLR
                             int submitCount = 0;
-//                            int deliveredCount = 0;
                             byte deliveryState = SmppConstants.STATE_DELIVERED;
                             int esmeErrCode = SmppConstants.STATUS_OK;
                             if(status.equals("000")) {
@@ -590,7 +429,6 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable{
 						LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
 								"Sending DLR with session: " + theSession.getConfiguration().getName() + ". DLR: " + dlrReceipt.toShortMessage(), null);
 					}
-					//theSession.close();
 				} else {
 					LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId, 
 							"CAN NOT FIND MATCHING SESSIONID FOR THE DLR. IGNORE THE DLR.", null);	
@@ -598,40 +436,12 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable{
 			} catch (Exception e) {
 				LoggingPooler.doLog(logger, "INFO", "BlastMeNeoClientDLRSubmitter", "processDlrQueue", true, false, true, "", 
 						"Failed to process the DLR message.", e);
-				//SMPPDLRPooler.sendSMPPPreviouslyFailedDLR("", queueMessage);
-			} 
+			}
 		}
-	
 
 		@Override
 		public void run() {
 			proccessClientDLRInNewTread();
 		}
 	}
-	
-	// RabbitMQ Channel Checker
-	public class rabbitMQChannelChecker implements Runnable {
-		
-		private void check() {
-			
-		}
-
-		@Override
-		public void run() {
-			while(true) {
-				check();
-				
-				try {
-					Thread.sleep(30000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			
-		}
-	
-	}
-
-	
 }
