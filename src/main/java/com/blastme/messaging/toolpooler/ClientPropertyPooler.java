@@ -1,4 +1,4 @@
-package com.simplex.smpp.toolpooler;
+package com.blastme.messaging.toolpooler;
 
 import java.io.File;
 import java.sql.Connection;
@@ -9,7 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.json.JSONObject;
-import com.simplex.smpp.configuration.Configuration;
+import com.blastme.messaging.configuration.Configuration;
 
 public class ClientPropertyPooler {
 	private static Logger logger;
@@ -45,9 +45,9 @@ public class ClientPropertyPooler {
 		jsonClientProperty = new JSONObject();
 		
 		initiateJSONClientProperty();
-
-		LoggingPooler.doLog(logger, "INFO", "ClientPropertyPooler", "ClientPropertyPooler", false, false, false, "",
-				"Module ClientPropertyPooler is initiated and ready to serve.", null);
+		
+		LoggingPooler.doLog(logger, "INFO", "ClientPropertyPooler", "ClientPropertyPooler", false, false, false, "", 
+				"Module ClientPropertyPooler is initiated and ready to serve. jsonClientProperty: " + jsonClientProperty.toString(), null);				
 	}
 
 	public void initiateJSONClientProperty(){
@@ -72,6 +72,9 @@ public class ClientPropertyPooler {
     			
     			jsonClientProperty.put(resultSet.getString("client_id"), jsonDetail);
             }
+
+    		LoggingPooler.doLog(logger, "DEBUG", "ClientPropertyPooler", "initiateJSONClientProperty", false, false, false, "", 
+    				"jsonClientProperty: " + jsonClientProperty.toString(), null);
 		} catch (Exception e) {
 			e.printStackTrace();
     		LoggingPooler.doLog(logger, "INFO", "ClientPropertyPooler", "initiateJSONClientProperty", true, false, false, "", 
@@ -91,7 +94,31 @@ public class ClientPropertyPooler {
 			 }
 		}
 	}
-
+	
+	public String getClientName(String clientId){
+		String hasil = "";
+		
+		if(jsonClientProperty.has(clientId.trim())){
+			JSONObject jsonDetail = jsonClientProperty.getJSONObject(clientId.trim());
+			
+			hasil = jsonDetail.getString("clientName");
+		}
+		
+		return hasil;
+	}
+	
+	public Boolean getIsClientActive(String clientId){
+		Boolean hasil = false;
+		
+		if(jsonClientProperty.has(clientId.trim())){
+			JSONObject jsonDetail = jsonClientProperty.getJSONObject(clientId.trim());
+			
+			hasil = jsonDetail.getBoolean("isActive");
+		}
+		
+		return hasil;
+	}
+	
 	public String getBusinessMode(String clientId){
 		String businessModel = "PREPAID";
 		

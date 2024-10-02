@@ -1,4 +1,4 @@
-package com.simplex.smpp.toolpooler;
+package com.blastme.messaging.toolpooler;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,7 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 
-import com.simplex.smpp.configuration.Configuration;
+import com.blastme.messaging.configuration.Configuration;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -16,7 +16,9 @@ import com.rabbitmq.client.ConnectionFactory;
 public class RabbitMQPooler {
 	private static Logger logger;
 	private static ConnectionFactory factory;
-
+//	private static Connection connection;
+//	public static Channel channel;
+	
 	public RabbitMQPooler() {
 		// Load logger configuration file
 		new Configuration();

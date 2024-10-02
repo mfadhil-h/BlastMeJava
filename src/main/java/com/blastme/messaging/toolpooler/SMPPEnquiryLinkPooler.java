@@ -1,4 +1,4 @@
-package com.simplex.smpp.toolpooler;
+package com.blastme.messaging.toolpooler;
 
 import java.io.File;
 import java.time.LocalDateTime;
@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
-import com.simplex.smpp.configuration.Configuration;
+import com.blastme.messaging.configuration.Configuration;
 
 import io.lettuce.core.api.sync.RedisCommands;
 
@@ -16,10 +16,11 @@ public class SMPPEnquiryLinkPooler {
 		
 	private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMddHHmmssSSS");
 	
-	private final RedisPooler redisPooler;
-	private final RedisCommands<String, String> redisCommand;
-
-    public SMPPEnquiryLinkPooler() {
+	private RedisPooler redisPooler;
+	private RedisCommands<String, String> redisCommand;
+	private static int redisExpiry = 1 * 24 * 60 * 60; // 1 days from last operation
+	
+	public SMPPEnquiryLinkPooler() {
 		// Load Configuration
 		new Configuration();
 		LoggerContext context = (org.apache.logging.log4j.core.LoggerContext) LogManager.getContext(false);
@@ -31,7 +32,7 @@ public class SMPPEnquiryLinkPooler {
 
 		// Initiate LoggingPooler
 		new LoggingPooler();
-
+		
 		// Initiate RedisPooler
 		redisPooler = new RedisPooler();
 		redisCommand = redisPooler.redisInitiateConnection();
@@ -47,10 +48,8 @@ public class SMPPEnquiryLinkPooler {
 
     		String redisKey = clientId + "-" + sessionId;
     		String redisVal = now.format(formatter) + "-" + activity;
-
-            // 1 day from last operation
-            int redisExpiry = 24 * 60 * 60;
-            redisPooler.redisSetWithExpiry(redisCommand, redisKey, redisVal, redisExpiry);
+    		
+    		redisPooler.redisSetWithExpiry(redisCommand, redisKey, redisVal, redisExpiry);
     		
     		System.out.println("Data enquiry link clientId: " + clientId + ", sessionId: " + sessionId + " is saved");
     	} catch (Exception e) {

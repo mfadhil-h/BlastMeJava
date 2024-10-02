@@ -1,4 +1,4 @@
-package com.simplex.smpp.toolpooler;
+package com.blastme.messaging.toolpooler;
 
 import java.io.File;
 
@@ -6,17 +6,19 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 
-import com.simplex.smpp.configuration.Configuration;
+import com.blastme.messaging.configuration.Configuration;
 
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 
 public class RedisPooler {
-	private final Logger logger;
-
-    public StatefulRedisConnection<String, String> redisConnection;
-
+	private Logger logger;
+	
+	private RedisClient redisClient;
+	public StatefulRedisConnection<String, String> redisConnection;
+	//public RedisCommands<String, String> syncCommands;
+	
 	private static String redisAuth;
 	private static String redisHost;
 	private static int redisPort;
@@ -36,8 +38,7 @@ public class RedisPooler {
 		redisHost = Configuration.getRedisHost();
 		redisPort = Configuration.getRedisPort();
 		
-		LoggingPooler.doLog(logger, "INFO", "RedisPooler", "RedisPooler", false, false, false, "",
-				"REDISPOOLER is initiated", null);
+		LoggingPooler.doLog(logger, "INFO", "RedisPooler", "RedisPooler", false, false, false, "", "REDISPOOLER is initiated", null);
 	}
 	
 	public RedisCommands<String, String> redisInitiateConnection(){
@@ -51,7 +52,7 @@ public class RedisPooler {
 			return syncCommands;
 		} else {
 			// Initiate connection to server
-            RedisClient redisClient = RedisClient.create("redis://" + redisAuth + "@" + redisHost + ":" + redisPort);
+			redisClient = RedisClient.create("redis://" + redisAuth + "@" + redisHost + ":" + Integer.toString(redisPort));
 			redisConnection = redisClient.connect();
 			RedisCommands<String, String> syncCommands = redisConnection.sync();
 						
@@ -61,17 +62,36 @@ public class RedisPooler {
 			return syncCommands;
 		}
 	}
+	
+	public StatefulRedisConnection<String, String> getRedisConnection(){
+		return redisConnection;
+	}
+	
+	public void redisSet(RedisCommands<String, String> syncCommands, String key, String value){
+		syncCommands.set(key, value);
 
+		
+		LoggingPooler.doLog(logger, "DEBUG", "RedisPooler", "RedisPooler", false, false, false, "", 
+				"Successfully set redis - key: " + key + ", value: " + value, null);			
+	}
+	
 	public void redisSetWithExpiry(RedisCommands<String, String> syncCommands, String key, String value, int secondsExpiry){
 		syncCommands.set(key, value);
 		syncCommands.expire(key, secondsExpiry);
 
 		LoggingPooler.doLog(logger, "DEBUG", "RedisPooler", "RedisPooler", false, false, false, "", 
-				"Successfully set redis - key: " + key + ", value: " + value + ", expiry: " + secondsExpiry, null);
+				"Successfully set redis - key: " + key + ", value: " + value + ", expiry: " + Integer.toString(secondsExpiry), null);			
+	}
+	
+	public void redisDel(RedisCommands<String, String> syncCommands, String key){
+		syncCommands.del(key);
+
+		LoggingPooler.doLog(logger, "DEBUG", "RedisPooler", "RedisPooler", false, false, false, "", 
+				"Successfully delete redis - key: " + key, null);			
 	}
 	
 	public String redisGet(RedisCommands<String, String> syncCommands, String key){
-		String result;
+		String result = "";
 		
 		result = syncCommands.get(key);
 		
@@ -81,6 +101,18 @@ public class RedisPooler {
 		
 		LoggingPooler.doLog(logger, "DEBUG", "RedisPooler", "RedisPooler", false, false, false, "", 
 				"Successfully read redis - key: " + key, null);			
+		return result;
+	}
+	
+	public String redisGetDel(RedisCommands<String, String> syncCommands, String key){
+		String result = "";
+		
+		result = syncCommands.get(key);
+		syncCommands.del(key);
+		
+		LoggingPooler.doLog(logger, "DEBUG", "RedisPooler", "RedisPooler", false, false, false, "", 
+				"Successfully read and delete redis - key: " + key, null);			
+		
 		return result;
 	}
 }

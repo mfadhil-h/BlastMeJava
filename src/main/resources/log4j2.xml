@@ -1,9 +1,174 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="DEBUG">
 	<Properties>
-		<Property name="LogPath">/Messaging/log/JavaSmpp</Property>
+		<Property name="LogPath">D:/temp/Logs/BlastMe</Property>
 	</Properties>
  	<Appenders>
+ 	 	<RollingFile name="MONITORINGTraceFile" filename="${LogPath}/MONITORING/trace/trace.log" 
+ 			filepattern="${LogPath}/MONITORING/trace/trace-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="MONITORINGDebugFile" filename="${LogPath}/MONITORING/debug/debug.log" 
+ 			filepattern="${LogPath}/MONITORING/debug/debug-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="MONITORINGInfoFile" filename="${LogPath}/MONITORING/info/info.log" 
+ 			filepattern="${LogPath}/MONITORING/info/info-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="MONITORINGErrorFile" filename="${LogPath}/MONITORING/error/error.log" 
+ 			filepattern="${LogPath}/MONITORING/error/error-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 	
+ 	 	<RollingFile name="WEBAPITraceFile" filename="${LogPath}/WEBAPI/trace/trace.log" 
+ 			filepattern="${LogPath}/WEBAPI/trace/trace-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="WEBAPIDebugFile" filename="${LogPath}/WEBAPI/debug/debug.log" 
+ 			filepattern="${LogPath}/WEBAPI/debug/debug-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="WEBAPIInfoFile" filename="${LogPath}/WEBAPI/info/info.log" 
+ 			filepattern="${LogPath}/WEBAPI/info/info-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="WEBAPIErrorFile" filename="${LogPath}/WEBAPI/error/error.log" 
+ 			filepattern="${LogPath}/WEBAPI/error/error-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 	
+  	 	<RollingFile name="DummyTraceFile" filename="${LogPath}/dummy/trace/trace.log" 
+ 			filepattern="${LogPath}/dummy/trace/trace-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="DummyDebugFile" filename="${LogPath}/dummy/debug/debug.log" 
+ 			filepattern="${LogPath}/dummy/debug/debug-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="DummyInfoFile" filename="${LogPath}/dummy/info/info.log" 
+ 			filepattern="${LogPath}/dummy/info/info-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="DummyErrorFile" filename="${LogPath}/dummy/error/error.log" 
+ 			filepattern="${LogPath}/dummy/error/error-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 	
+ 	 	<RollingFile name="AgentTraceFile" filename="${LogPath}/agent/trace/trace.log" 
+ 			filepattern="${LogPath}/agent/trace/trace-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="AgentDebugFile" filename="${LogPath}/agent/debug/debug.log" 
+ 			filepattern="${LogPath}/agent/debug/debug-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="AgentInfoFile" filename="${LogPath}/agent/info/info.log" 
+ 			filepattern="${LogPath}/agent/info/info-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="AgentErrorFile" filename="${LogPath}/agent/error/error.log" 
+ 			filepattern="${LogPath}/agent/error/error-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 	
+ 		<RollingFile name="RouterTraceFile" filename="${LogPath}/router/trace/trace.log" 
+ 			filepattern="${LogPath}/router/trace/trace-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="RouterDebugFile" filename="${LogPath}/router/debug/debug.log" 
+ 			filepattern="${LogPath}/router/debug/debug-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="RouterInfoFile" filename="${LogPath}/router/info/info.log" 
+ 			filepattern="${LogPath}/router/info/info-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="RouterErrorFile" filename="${LogPath}/router/error/error.log" 
+ 			filepattern="${LogPath}/router/error/error-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+
  		<RollingFile name="SMPPTraceFile" filename="${LogPath}/SMPP/trace/trace.log" 
  			filepattern="${LogPath}/SMPP/trace/trace-%d{yyyy-MM-dd}-%i.log">
  			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
@@ -36,6 +201,81 @@
 				<SizeBasedTriggeringPolicy size="200 MB" />
 			</Policies>
  		</RollingFile>
+ 		
+ 	 	<RollingFile name="SMSBULKHTTPAPITraceFile" filename="${LogPath}/SMSBULKHTTPAPI/trace/trace.log" 
+ 			filepattern="${LogPath}/SMSBULKHTTPAPI/trace/trace-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="SMSBULKHTTPAPIDebugFile" filename="${LogPath}/SMSBULKHTTPAPI/debug/debug.log" 
+ 			filepattern="${LogPath}/SMSBULKHTTPAPI/debug/debug-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="SMSBULKHTTPAPIInfoFile" filename="${LogPath}/SMSBULKHTTPAPI/info/info.log" 
+ 			filepattern="${LogPath}/SMSBULKHTTPAPI/info/info-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="SMSBULKHTTPAPIErrorFile" filename="${LogPath}/SMSBULKHTTPAPI/error/error.log" 
+ 			filepattern="${LogPath}/SMSBULKHTTPAPI/error/error-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		
+ 	 	<RollingFile name="EMAILHTTPAPITraceFile" filename="${LogPath}/EMAILHTTPAPI/trace/trace.log" 
+ 			filepattern="${LogPath}/EMAILHTTPAPI/trace/trace-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="EMAILHTTPAPIDebugFile" filename="${LogPath}/EMAILHTTPAPI/debug/debug.log" 
+ 			filepattern="${LogPath}/EMAILHTTPAPI/debug/debug-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="EMAILHTTPAPIInfoFile" filename="${LogPath}/EMAILHTTPAPI/info/info.log" 
+ 			filepattern="${LogPath}/EMAILHTTPAPI/info/info-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="EMAILHTTPAPIErrorFile" filename="${LogPath}/EMAILHTTPAPI/error/error.log" 
+ 			filepattern="${LogPath}/EMAILHTTPAPI/error/error-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		
+ 	 	<RollingFile name="POOLERTraceFile" filename="${LogPath}/POOLER/trace/trace.log" 
+ 			filepattern="${LogPath}/POOLER/trace/trace-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
  		<RollingFile name="POOLERDebugFile" filename="${LogPath}/POOLER/debug/debug.log" 
  			filepattern="${LogPath}/POOLER/debug/debug-%d{yyyy-MM-dd}-%i.log">
  			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
@@ -60,18 +300,310 @@
 				<SizeBasedTriggeringPolicy size="200 MB" />
 			</Policies>
  		</RollingFile>
+ 		
+ 		<RollingFile name="TRANSCEIVERTraceFile" filename="${LogPath}/TRANSCEIVER/trace/trace.log" 
+ 			filepattern="${LogPath}/TRANSCEIVER/trace/trace-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="TRANSCEIVERDebugFile" filename="${LogPath}/TRANSCEIVER/debug/debug.log" 
+ 			filepattern="${LogPath}/TRANSCEIVER/debug/debug-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="TRANSCEIVERInfoFile" filename="${LogPath}/TRANSCEIVER/info/info.log" 
+ 			filepattern="${LogPath}/TRANSCEIVER/info/info-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="TRANSCEIVERErrorFile" filename="${LogPath}/TRANSCEIVER/error/error.log" 
+ 			filepattern="${LogPath}/TRANSCEIVER/error/error-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		
+ 		<RollingFile name="EMAILBLASTERTraceFile" filename="${LogPath}/EMAILBLASTER/trace/trace.log" 
+ 			filepattern="${LogPath}/EMAILBLASTER/trace/trace-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="EMAILBLASTERDebugFile" filename="${LogPath}/EMAILBLASTER/debug/debug.log" 
+ 			filepattern="${LogPath}/EMAILBLASTER/debug/debug-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="EMAILBLASTERInfoFile" filename="${LogPath}/EMAILBLASTER/info/info.log" 
+ 			filepattern="${LogPath}/EMAILBLASTER/info/info-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="EMAILBLASTERErrorFile" filename="${LogPath}/EMAILBLASTER/error/error.log" 
+ 			filepattern="${LogPath}/EMAILBLASTER/error/error-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		
+ 		<RollingFile name="HTTP_SMSTraceFile" filename="${LogPath}/HTTP_SMS/trace/trace.log" 
+ 			filepattern="${LogPath}/HTTP_SMS/trace/trace-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="HTTP_SMSDebugFile" filename="${LogPath}/HTTP_SMS/debug/debug.log" 
+ 			filepattern="${LogPath}/HTTP_SMS/debug/debug-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="HTTP_SMSInfoFile" filename="${LogPath}/HTTP_SMS/info/info.log" 
+ 			filepattern="${LogPath}/HTTP_SMS/info/info-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="HTTP_SMSErrorFile" filename="${LogPath}/HTTP_SMS/error/error.log" 
+ 			filepattern="${LogPath}/HTTP_SMS/error/error-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		
+ 		<RollingFile name="DLR_RECEIVER_JATISMOBILETraceFile" filename="${LogPath}/DLR_RECEIVER_JATISMOBILE/trace/trace.log" 
+ 			filepattern="${LogPath}/DLR_RECEIVER_JATISMOBILE/trace/trace-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="DLR_RECEIVER_JATISMOBILEDebugFile" filename="${LogPath}/DLR_RECEIVER_JATISMOBILE/debug/debug.log" 
+ 			filepattern="${LogPath}/DLR_RECEIVER_JATISMOBILE/debug/debug-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="DLR_RECEIVER_JATISMOBILEInfoFile" filename="${LogPath}/DLR_RECEIVER_JATISMOBILE/info/info.log" 
+ 			filepattern="${LogPath}/DLR_RECEIVER_JATISMOBILE/info/info-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
+ 		<RollingFile name="DLR_RECEIVER_JATISMOBILEErrorFile" filename="${LogPath}/DLR_RECEIVER_JATISMOBILE/error/error.log" 
+ 			filepattern="${LogPath}/DLR_RECEIVER_JATISMOBILE/error/error-%d{yyyy-MM-dd}-%i.log">
+ 			<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %logger{36} - %msg%n" />
+		    <Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+ 		</RollingFile>
  		 		
       	<Console name="Console" target="SYSTEM_OUT">
       		<PatternLayout pattern="%d{yy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"/>
 	    </Console>
 	  </Appenders>
 	<Loggers>
+		<Logger name="HTTP_TELIN_CALLBACK" level="debug" additivity="false">
+			<AppenderRef ref="Console" level="DEBUG" />
+      		<AppenderRef ref="AgentTraceFile" level="TRACE"/>
+      		<AppenderRef ref="AgentDebugFile" level="DEBUG"/>
+      		<AppenderRef ref="AgentInfoFile" level="INFO"/>
+      		<AppenderRef ref="AgentErrorFile" level="ERROR"/>
+		</Logger>
+
+		<Logger name="CSV_TRANSACTION_GENERATOR" level="debug" additivity="false">
+			<AppenderRef ref="Console" level="DEBUG" />
+      		<AppenderRef ref="AgentTraceFile" level="TRACE"/>
+      		<AppenderRef ref="AgentDebugFile" level="DEBUG"/>
+      		<AppenderRef ref="AgentInfoFile" level="INFO"/>
+      		<AppenderRef ref="AgentErrorFile" level="ERROR"/>
+		</Logger>
+
+		<Logger name="CONTEXTUAL_SENDER_SCHEDULER" level="debug" additivity="false">
+			<AppenderRef ref="Console" level="DEBUG" />
+      		<AppenderRef ref="AgentTraceFile" level="TRACE"/>
+      		<AppenderRef ref="AgentDebugFile" level="DEBUG"/>
+      		<AppenderRef ref="AgentInfoFile" level="INFO"/>
+      		<AppenderRef ref="AgentErrorFile" level="ERROR"/>
+		</Logger>
+
+		<Logger name="VOICEBLAST_SENDER" level="debug" additivity="false">
+			<AppenderRef ref="Console" level="DEBUG" />
+      		<AppenderRef ref="AgentTraceFile" level="TRACE"/>
+      		<AppenderRef ref="AgentDebugFile" level="DEBUG"/>
+      		<AppenderRef ref="AgentInfoFile" level="INFO"/>
+      		<AppenderRef ref="AgentErrorFile" level="ERROR"/>
+		</Logger>
+
+		<Logger name="WABLAST_PROCESSOR" level="debug" additivity="false">
+			<AppenderRef ref="Console" level="DEBUG" />
+      		<AppenderRef ref="AgentTraceFile" level="TRACE"/>
+      		<AppenderRef ref="AgentDebugFile" level="DEBUG"/>
+      		<AppenderRef ref="AgentInfoFile" level="INFO"/>
+      		<AppenderRef ref="AgentErrorFile" level="ERROR"/>
+		</Logger>
+
+		<Logger name="VOICEBLAST_PROCESSOR" level="debug" additivity="false">
+			<AppenderRef ref="Console" level="DEBUG" />
+      		<AppenderRef ref="AgentTraceFile" level="TRACE"/>
+      		<AppenderRef ref="AgentDebugFile" level="DEBUG"/>
+      		<AppenderRef ref="AgentInfoFile" level="INFO"/>
+      		<AppenderRef ref="AgentErrorFile" level="ERROR"/>
+		</Logger>
+
+		<Logger name="FIXANUMBER_PROCESSOR" level="debug" additivity="false">
+			<AppenderRef ref="Console" level="DEBUG" />
+      		<AppenderRef ref="AgentTraceFile" level="TRACE"/>
+      		<AppenderRef ref="AgentDebugFile" level="DEBUG"/>
+      		<AppenderRef ref="AgentInfoFile" level="INFO"/>
+      		<AppenderRef ref="AgentErrorFile" level="ERROR"/>
+		</Logger>
+
+		<Logger name="AUTOGENANUMBER_PROCESSOR" level="debug" additivity="false">
+			<AppenderRef ref="Console" level="DEBUG" />
+      		<AppenderRef ref="AgentTraceFile" level="TRACE"/>
+      		<AppenderRef ref="AgentDebugFile" level="DEBUG"/>
+      		<AppenderRef ref="AgentInfoFile" level="INFO"/>
+      		<AppenderRef ref="AgentErrorFile" level="ERROR"/>
+		</Logger>
+
+		<Logger name="DLR_RECEIVER_JATISMOBILE" level="debug" additivity="false">
+			<AppenderRef ref="Console" level="DEBUG" />
+      		<AppenderRef ref="DLR_RECEIVER_JATISMOBILETraceFile" level="TRACE"/>
+      		<AppenderRef ref="DLR_RECEIVER_JATISMOBILEDebugFile" level="DEBUG"/>
+      		<AppenderRef ref="DLR_RECEIVER_JATISMOBILEInfoFile" level="INFO"/>
+      		<AppenderRef ref="DLR_RECEIVER_JATISMOBILEErrorFile" level="ERROR"/>
+		</Logger>
+
+		<Logger name="HTTP_SMS" level="debug" additivity="false">
+			<AppenderRef ref="Console" level="DEBUG" />
+      		<AppenderRef ref="HTTP_SMSTraceFile" level="TRACE"/>
+      		<AppenderRef ref="HTTP_SMSDebugFile" level="DEBUG"/>
+      		<AppenderRef ref="HTTP_SMSInfoFile" level="INFO"/>
+      		<AppenderRef ref="HTTP_SMSErrorFile" level="ERROR"/>
+		</Logger>
+
+		<Logger name="TRANSCEIVER_SMPP_JATELINDO" level="debug" additivity="false">
+			<AppenderRef ref="Console" level="DEBUG" />
+      		<AppenderRef ref="TRANSCEIVERTraceFile" level="TRACE"/>
+      		<AppenderRef ref="TRANSCEIVERDebugFile" level="DEBUG"/>
+      		<AppenderRef ref="TRANSCEIVERInfoFile" level="INFO"/>
+      		<AppenderRef ref="TRANSCEIVERErrorFile" level="ERROR"/>
+		</Logger>
+
+		<Logger name="TRANSCEIVER_TELINVOICEBLAST" level="debug" additivity="false">
+			<AppenderRef ref="Console" level="DEBUG" />
+      		<AppenderRef ref="TRANSCEIVERTraceFile" level="TRACE"/>
+      		<AppenderRef ref="TRANSCEIVERDebugFile" level="DEBUG"/>
+      		<AppenderRef ref="TRANSCEIVERInfoFile" level="INFO"/>
+      		<AppenderRef ref="TRANSCEIVERErrorFile" level="ERROR"/>
+		</Logger>
+
+		<Logger name="TRANSCEIVER_TELINCPAAS" level="debug" additivity="false">
+			<AppenderRef ref="Console" level="DEBUG" />
+      		<AppenderRef ref="TRANSCEIVERTraceFile" level="TRACE"/>
+      		<AppenderRef ref="TRANSCEIVERDebugFile" level="DEBUG"/>
+      		<AppenderRef ref="TRANSCEIVERInfoFile" level="INFO"/>
+      		<AppenderRef ref="TRANSCEIVERErrorFile" level="ERROR"/>
+		</Logger>
+
+		<Logger name="TRANSCEIVER_DUMMY" level="debug" additivity="false">
+			<AppenderRef ref="Console" level="DEBUG" />
+      		<AppenderRef ref="TRANSCEIVERTraceFile" level="TRACE"/>
+      		<AppenderRef ref="TRANSCEIVERDebugFile" level="DEBUG"/>
+      		<AppenderRef ref="TRANSCEIVERInfoFile" level="INFO"/>
+      		<AppenderRef ref="TRANSCEIVERErrorFile" level="ERROR"/>
+		</Logger>
+
+		<Logger name="TRANSCEIVER_JATISMOBILE" level="debug" additivity="false">
+			<AppenderRef ref="Console" level="DEBUG" />
+      		<AppenderRef ref="TRANSCEIVERTraceFile" level="TRACE"/>
+      		<AppenderRef ref="TRANSCEIVERDebugFile" level="DEBUG"/>
+      		<AppenderRef ref="TRANSCEIVERInfoFile" level="INFO"/>
+      		<AppenderRef ref="TRANSCEIVERErrorFile" level="ERROR"/>
+		</Logger>
+
+		<Logger name="SMS_ROUTER" level="debug" additivity="false">
+			<AppenderRef ref="Console" level="DEBUG" />
+      		<AppenderRef ref="RouterTraceFile" level="TRACE"/>
+      		<AppenderRef ref="RouterDebugFile" level="DEBUG"/>
+      		<AppenderRef ref="RouterInfoFile" level="INFO"/>
+      		<AppenderRef ref="RouterErrorFile" level="ERROR"/>
+		</Logger>
+
 		<Logger name="SMPP_SERVER" level="debug" additivity="false">
 			<AppenderRef ref="Console" level="DEBUG" />
 			<AppenderRef ref="SMPPTraceFile" level="TRACE" />
 			<AppenderRef ref="SMPPDebugFile" level="DEBUG" />
 			<AppenderRef ref="SMPPInfoFile" level="INFO" />
 			<AppenderRef ref="SMPPErrorFile" level="ERROR" />
+		</Logger>
+	
+		<Logger name="WEBAPI" level="debug" additivity="false">
+			<AppenderRef ref="Console" level="DEBUG" />
+			<AppenderRef ref="WEBAPITraceFile" level="TRACE" />
+			<AppenderRef ref="WEBAPIDebugFile" level="DEBUG" />
+			<AppenderRef ref="WEBAPIInfoFile" level="INFO" />
+			<AppenderRef ref="WEBAPIErrorFile" level="ERROR" />
+		</Logger>
+
+		<Logger name="EMAILBLASTER" level="debug" additivity="false">
+			<AppenderRef ref="Console" level="DEBUG" />
+			<AppenderRef ref="EMAILBLASTERTraceFile" level="TRACE" />
+			<AppenderRef ref="EMAILBLASTERDebugFile" level="DEBUG" />
+			<AppenderRef ref="EMAILBLASTERInfoFile" level="INFO" />
+			<AppenderRef ref="EMAILBLASTERErrorFile" level="ERROR" />
+		</Logger>
+
+		<Logger name="SMSBULKHTTPAPI" level="debug" additivity="false">
+			<AppenderRef ref="Console" level="DEBUG" />
+			<AppenderRef ref="SMSBULKHTTPAPITraceFile" level="TRACE" />
+			<AppenderRef ref="SMSBULKHTTPAPIDebugFile" level="DEBUG" />
+			<AppenderRef ref="SMSBULKHTTPAPIInfoFile" level="INFO" />
+			<AppenderRef ref="SMSBULKHTTPAPIErrorFile" level="ERROR" />
+		</Logger>
+
+		<Logger name="EMAILHTTPAPI" level="debug" additivity="false">
+			<AppenderRef ref="Console" level="DEBUG" />
+			<AppenderRef ref="EMAILHTTPAPITraceFile" level="TRACE" />
+			<AppenderRef ref="EMAILHTTPAPIDebugFile" level="DEBUG" />
+			<AppenderRef ref="EMAILHTTPAPIInfoFile" level="INFO" />
+			<AppenderRef ref="EMAILHTTPAPIErrorFile" level="ERROR" />
 		</Logger>
 
 		<Logger name="POOLER" level="debug" additivity="false">
