@@ -121,7 +121,6 @@ public class BlastMeNeoSMPPServer {
         sslConfig.setTrustStorePassword(Configuration.getSslPass());
         sslConfig.setValidateCerts(true);
         sslConfig.setValidatePeerCerts(true);
-        sslConfig.setSslSessionTimeout();
         return sslConfig;
     }
 
