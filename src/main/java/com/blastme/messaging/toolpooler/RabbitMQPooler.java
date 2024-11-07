@@ -44,7 +44,7 @@ public class RabbitMQPooler {
         factory.setTopologyRecoveryEnabled(true);
 
         System.out.println("RabbitMQ Host: " + Configuration.getRabbitHost() + ", User: " + Configuration.getRabbitUser() + ", Password: " + Configuration.getRabbitPass() + ", VirtualHost: " + Configuration.getRabbitVirtualHost());
-        LoggingPooler.doLog(logger, "DEBUG", "RabbitMQPooler", "RabbitMQPooler", false, false, false, "",
+        LoggingPooler.doLog(logger, "DEBUG", "RabbitMQPooler", "RabbitMQPooler", false, false, true, "",
                 "RabbitMQ Host: " + Configuration.getRabbitHost() + ", User: " + Configuration.getRabbitUser() + ", VirtualHost: " + Configuration.getRabbitVirtualHost(), null);
     }
 
@@ -57,7 +57,7 @@ public class RabbitMQPooler {
             e.printStackTrace();
         } catch (TimeoutException e) {
             e.printStackTrace();
-            LoggingPooler.doLog(logger, "INFO", "RabbitMQPooler", "getChannel", true, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "RabbitMQPooler", "getChannel", true, false, true, "",
                     "Failed to create Connection to RabbitMQ server. Error occured.", e);
         }
 
@@ -70,7 +70,7 @@ public class RabbitMQPooler {
             channel = connection.createChannel();
         } catch (IOException e) {
             e.printStackTrace();
-            LoggingPooler.doLog(logger, "INFO", "RabbitMQPooler", "getChannel", true, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "RabbitMQPooler", "getChannel", true, false, true, "",
                     "Failed to create Channel. Error occured.", e);
         }
 

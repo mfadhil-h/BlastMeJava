@@ -32,9 +32,9 @@ public class RouteSMSPooler {
         initiateJSONRouteSMSProperty();
 
         // Log loaded print large data no needed
-//		LoggingPooler.doLog(logger, "INFO", "RouteSMSPooler", "RouteSMSPooler", false, false, false, "",
+//		LoggingPooler.doLog(logger, "INFO", "RouteSMSPooler", "RouteSMSPooler", false, false, true, "",
 //				"Module RouteSMSPooler is initiated and ready to serve. jsonRouteSMSProperty: " + jsonRouteSMSProperty.toString(), null);
-        LoggingPooler.doLog(logger, "INFO", "RouteSMSPooler", "RouteSMSPooler", false, false, false, "",
+        LoggingPooler.doLog(logger, "INFO", "RouteSMSPooler", "RouteSMSPooler", false, false, true, "",
                 "Module RouteSMSPooler is initiated and ready to serve.", null);
     }
 
@@ -48,7 +48,7 @@ public class RouteSMSPooler {
             BasicDataSource bds = DataSource.getInstance().getBds(); // bds di sini tidak perlu diclose, karena akan close DataSource yang masih akan dipake oleh aplikasi pemanggil
             connection = bds.getConnection();
             statement = connection.createStatement();
-            LoggingPooler.doLog(logger, "INFO", "RouteSMSPooler", "RouteSMSPooler", false, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "RouteSMSPooler", "RouteSMSPooler", false, false, true, "",
                     "Database connection is load and initiated.", null);
 
             String query = "select routing_id, client_user_api, client_id, client_sender_id_id, telecom_id, vendor_id, vendor_sender_id_id, vendor_parameter_json, "
@@ -79,11 +79,11 @@ public class RouteSMSPooler {
                 jsonRouteSMSProperty.put(resultSet.getString("routing_id").trim(), jsonDetail);
             }
 
-//    		LoggingPooler.doLog(logger, "DEBUG", "RouteSMSPooler", "initiateJSONRouteSMSProperty", false, false, false, "",
+//    		LoggingPooler.doLog(logger, "DEBUG", "RouteSMSPooler", "initiateJSONRouteSMSProperty", false, false, true, "",
 //    				"jsonRouteSMSProperty: " + jsonRouteSMSProperty.toString(), null);
         } catch (Exception e) {
             e.printStackTrace();
-            LoggingPooler.doLog(logger, "INFO", "RouteSMSPooler", "initiateJSONRouteSMSProperty", true, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "RouteSMSPooler", "initiateJSONRouteSMSProperty", true, false, true, "",
                     "Failed to intiate jsonSenderIdSMSProperty. Error occured.", e);
         } finally {
             try {
@@ -95,7 +95,7 @@ public class RouteSMSPooler {
                     connection.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LoggingPooler.doLog(logger, "DEBUG", "RouteSMSPooler", "initiateJSONRouteSMSProperty", true, false, false, "",
+                LoggingPooler.doLog(logger, "DEBUG", "RouteSMSPooler", "initiateJSONRouteSMSProperty", true, false, true, "",
                         "Failed to close query statement.", e);
             }
         }

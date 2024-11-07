@@ -29,8 +29,9 @@ public class Configuration {
 
     private static String sslCertificate;
     private static String privateKeyCertificate;
+    private static String pkcs12;
     private static String jks;
-    private static String jksPass;
+    private static String sslPass;
 
     private static String csvTransactionReportPath;
 
@@ -79,7 +80,8 @@ public class Configuration {
             sslCertificate = prop.getProperty("ssl.certificate");
             privateKeyCertificate = prop.getProperty("ssl.privatekey");
             jks = prop.getProperty("ssl.jks");
-            jksPass = prop.getProperty("ssl.jkspass");
+            pkcs12 = prop.getProperty("ssl.pkcs12");
+            sslPass = prop.getProperty("ssl.pass");
 
             csvTransactionReportPath = prop.getProperty("csv.transactionreport");
 
@@ -199,7 +201,11 @@ public class Configuration {
         return jks;
     }
 
-    public static String getJksPass() {
-        return jksPass;
+    public static String getSslPass() {
+        return sslPass;
+    }
+
+    public static String getPkcs12() {
+        return pkcs12;
     }
 }

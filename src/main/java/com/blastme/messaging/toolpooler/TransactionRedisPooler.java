@@ -32,7 +32,7 @@ public class TransactionRedisPooler {
         redisPooler = new RedisPooler();
         redisCommand = redisPooler.redisInitiateConnection();
 
-        LoggingPooler.doLog(logger, "INFO", "TransactionRedisPooler", "TransactionRedisPooler", false, false, false, "",
+        LoggingPooler.doLog(logger, "INFO", "TransactionRedisPooler", "TransactionRedisPooler", false, false, true, "",
                 "Module TransactionRedisPooler is initiated.", null);
     }
 
@@ -45,13 +45,13 @@ public class TransactionRedisPooler {
         JSONObject jsonRedis = new JSONObject();
         if (redisVal != null && redisVal.trim().length() > 0) {
             // Existing redisVal is set
-            LoggingPooler.doLog(logger, "INFO", "TransactionRedisPooler", "updateTrxRedisData", false, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "TransactionRedisPooler", "updateTrxRedisData", false, false, true, "",
                     redisKey + " - already has data. Existing data: " + redisVal.trim(), null);
 
             jsonRedis = new JSONObject(redisVal);
 
             // Append jsonNewAppendedData into jsonRedis
-            LoggingPooler.doLog(logger, "INFO", "TransactionRedisPooler", "updateTrxRedisData", false, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "TransactionRedisPooler", "updateTrxRedisData", false, false, true, "",
                     redisKey + " - appending new trx data: " + jsonNewAppendedData.toString(), null);
             Iterator<String> keys = jsonNewAppendedData.keys();
 
@@ -60,16 +60,16 @@ public class TransactionRedisPooler {
 
                 jsonRedis.put(key, jsonNewAppendedData.get(key));
             }
-            LoggingPooler.doLog(logger, "INFO", "TransactionRedisPooler", "updateTrxRedisData", false, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "TransactionRedisPooler", "updateTrxRedisData", false, false, true, "",
                     redisKey + " - new trx data become " + jsonRedis, null);
         } else {
             // Existing redisVal is NOT set
-            LoggingPooler.doLog(logger, "INFO", "TransactionRedisPooler", "updateTrxRedisData", false, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "TransactionRedisPooler", "updateTrxRedisData", false, false, true, "",
                     redisKey + " - NEW TRX DATA.", null);
             jsonRedis = jsonNewAppendedData;
         }
 
-        LoggingPooler.doLog(logger, "INFO", "TransactionRedisPooler", "updateTrxRedisData", false, false, false, "",
+        LoggingPooler.doLog(logger, "INFO", "TransactionRedisPooler", "updateTrxRedisData", false, false, true, "",
                 redisKey + " - final jsonRedis: " + jsonRedis.toString(), null);
 
         // Update redis

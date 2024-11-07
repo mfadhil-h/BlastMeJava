@@ -28,10 +28,15 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 public class BlastMeNeoClientDLRSubmitter implements Runnable {
     private Logger logger;
+    // NON TLS ONLY
+//    private static final String DLRQUEUE = "SMPP_DLR";
+//    private static final String DLRQUEUETLS = "SMPP_DLR_TLS";
+    // TLS ONLY
+    private static final String DLRQUEUE = "SMPP_DLR_TLS";
 
-    private static final String DLRQUEUE = "SMPP_DLR";
     private static final int clientDlrTPS = 100;
 
+    private UserAPISMPPSMSPooler userApiSMPPSMSPooler;
     private RabbitMQPooler rabbitMqPooler;
     private Connection connection;
     private Channel channel;
@@ -50,6 +55,9 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable {
 
             // Initiate LoggingPooler
             new LoggingPooler();
+
+            userApiSMPPSMSPooler = new UserAPISMPPSMSPooler();
+            System.out.println("USERAPISMPPSMSPooler is initiated.");
 
             rabbitMqPooler = new RabbitMQPooler();
 
@@ -73,7 +81,7 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable {
 
             smsTransactionOperationPooler = new SMSTransactionOperationPooler();
 
-            LoggingPooler.doLog(logger, "INFO", "BlastMeNeoClientDLRSubmitter", "BlastMeNeoClientDLRSubmitter", false, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "BlastMeNeoClientDLRSubmitter", "BlastMeNeoClientDLRSubmitter", false, false, true, "",
                     "Successfully initialize channel rabbitMq to queueName " + DLRQUEUE, null);
         } catch (Exception e) {
             LoggingPooler.doLog(logger, "INFO", "BlastMeNeoClientDLRSubmitter", "BlastMeNeoClientDLRSubmitter", true, false, true, "",
@@ -122,7 +130,7 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable {
             boolean autoAck = false; // If not finally exectued well, no ack to rabbitmq, message not gone
             channel.basicConsume(DLRQUEUE, autoAck, consumer);
         } catch (Exception e) {
-            LoggingPooler.doLog(logger, "INFO", "BlastMeNeoClientDLRSubmitter", "readDLRQueue", true, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "BlastMeNeoClientDLRSubmitter", "readDLRQueue", true, false, true, "",
                     "Failed to access queue " + DLRQUEUE, e);
 
             // Re-initiate channel
@@ -171,16 +179,16 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable {
                 } else {
                     clientResp = "Failed to properly receive deliver_sm_resp: " + future.getCause();
                 }
-                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "sendRequestPdu", false, false, false, "",
+                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "sendRequestPdu", false, false, true, "",
                         clientResp, null);
 
                 // Update transaction DLR for clientResponse
                 smsTransactionOperationPooler.insertTransactionDLRClientResponse(messageId, clientResp);
-                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "sendRequestPdu", false, false, false, "",
+                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "sendRequestPdu", false, false, true, "",
                         "Client response is saved to table transacion_sms_dlr.", null);
             } catch (Exception e) {
                 e.printStackTrace();
-                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "sendRequestPdu", true, false, false, "",
+                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "sendRequestPdu", true, false, true, "",
                         "Failed to send PDU to client. Error occured.", e);
             }
         }
@@ -198,7 +206,7 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable {
                 sendRequestPdu(session, messageId, deliver);
 
             } catch (Exception e) {
-                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "sendRequestPdu", true, false, false, "",
+                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "sendRequestPdu", true, false, true, "",
                         "Failed sending delivery report.", e);
             }
         }
@@ -229,7 +237,7 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable {
                 String redisKey = "trxdata-" + messageId.trim();
                 String redisVal = redisPooler.redisGet(redisCommand, redisKey);
 
-                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, true, messageId,
                         "messageId: " + messageId + ", status: " + status + ", msisdn: " + msisdn + ", trxdata value " + redisVal, null);
 
                 JSONObject jsonTrxDetail = smsTransactionOperationPooler.getTransactionDetail(messageId);
@@ -244,7 +252,7 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable {
                 String clientId = jsonTrxDetail.getString("clientId");
                 String encoding = jsonTrxDetail.getString("encoding");
 
-                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, true, messageId,
                         "messageId: " + messageId + ", theSMS: " + theSMS, null);
 
                 // Get the SMPPSession
@@ -262,8 +270,10 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable {
                     }
                 }
 
-                if (theSession != null) {
-                    LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+                boolean isTLS = userApiSMPPSMSPooler.getIsTLSUser(theSysId);
+
+                if (theSession != null && isTLS) {
+                    LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, true, messageId,
                             "Preparing session: " + theSession.getConfiguration().getName() + ". isBound: " + theSession.isBound(), null);
 
                     boolean isMultiMID = smsTransactionOperationPooler.getUserIsMultiMID(theSysId);
@@ -274,7 +284,7 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable {
                         if (strMultipartMesseageIds.length > 0 && !jsonTrxDetail.getString("multipart_messeage_ids").isEmpty()) {
                             for (String messageIdPart : strMultipartMesseageIds) {
                                 messageId = messageIdPart.trim();
-                                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+                                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, true, messageId,
                                         "DLR sysId: " + theSysId + " -> found matching SMPPSession: " + theSession.getConfiguration().getName(), null);
 
                                 // Prepare the DLR
@@ -302,7 +312,7 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable {
 
                                 // Save to DB transaction_sms_dlr - saving db has to be before sendDeliveryReceipt
                                 smsTransactionOperationPooler.saveTransactionDLR(messageId, clientId, LocalDateTime.now(), dlrReceipt.toShortMessage(), status, "SMPP session name " + theSession.getConfiguration().getName());
-                                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+                                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, true, messageId,
                                         "Data DLR saved in transaction_sms_dlr.", null);
 
                                 Address moSourceAddress = new Address((byte) 0x01, (byte) 0x01, msisdn);
@@ -314,11 +324,11 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable {
 
                                 // Send DLR
                                 sendDeliveryReceipt(theSession, messageId, moSourceAddress, moDestinationAddress, dlrReceipt.toShortMessage().getBytes(), dataCoding);
-                                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+                                LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, true, messageId,
                                         "Sending DLR Part (" + deliveredCount + ") with session: " + theSession.getConfiguration().getName() + ". DLR: " + dlrReceipt.toShortMessage(), null);
                             }
                         } else {
-                            LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+                            LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, true, messageId,
                                     "DLR sysId: " + theSysId + " -> found matching SMPPSession: " + theSession.getConfiguration().getName(), null);
 
                             // Prepare the DLR
@@ -349,7 +359,7 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable {
 
                             // Save to DB transaction_sms_dlr - saving db has to be before sendDeliveryReceipt
                             smsTransactionOperationPooler.saveTransactionDLR(messageId, clientId, LocalDateTime.now(), dlrReceipt.toShortMessage(), status, "SMPP session name " + theSession.getConfiguration().getName());
-                            LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+                            LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, true, messageId,
                                     "Data DLR saved in transaction_sms_dlr.", null);
 
                             Address moSourceAddress = new Address((byte) 0x01, (byte) 0x01, msisdn);
@@ -361,11 +371,11 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable {
 
                             // Send DLR
                             sendDeliveryReceipt(theSession, messageId, moSourceAddress, moDestinationAddress, dlrReceipt.toShortMessage().getBytes(), dataCoding);
-                            LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+                            LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, true, messageId,
                                     "Sending DLR with session: " + theSession.getConfiguration().getName() + ". DLR: " + dlrReceipt.toShortMessage(), null);
                         }
                     } else {
-                        LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+                        LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, true, messageId,
                                 "DLR sysId: " + theSysId + " -> found matching SMPPSession: " + theSession.getConfiguration().getName(), null);
 
                         // Prepare the DLR
@@ -397,7 +407,7 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable {
 
                         // Save to DB transaction_sms_dlr - saving db has to be before sendDeliveryReceipt
                         smsTransactionOperationPooler.saveTransactionDLR(messageId, clientId, LocalDateTime.now(), dlrReceipt.toShortMessage(), status, "SMPP session name " + theSession.getConfiguration().getName());
-                        LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+                        LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, true, messageId,
                                 "Data DLR saved in transaction_sms_dlr.", null);
 
                         Address moSourceAddress = new Address((byte) 0x01, (byte) 0x01, msisdn);
@@ -409,12 +419,29 @@ public class BlastMeNeoClientDLRSubmitter implements Runnable {
 
                         // Send DLR
                         sendDeliveryReceipt(theSession, messageId, moSourceAddress, moDestinationAddress, dlrReceipt.toShortMessage().getBytes(), dataCoding);
-                        LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
+                        LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, true, messageId,
                                 "Sending DLR with session: " + theSession.getConfiguration().getName() + ". DLR: " + dlrReceipt.toShortMessage(), null);
                     }
                 } else {
-                    LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, false, messageId,
-                            "CAN NOT FIND MATCHING SESSIONID FOR THE DLR. IGNORE THE DLR.", null);
+                    LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, true, messageId,
+                            "CAN NOT FIND MATCHING SESSIONID FOR THE DLR. IGNORE THE DLR LATEST CHECKPOINT.", null);
+                    // THIS BELOW ACTIVE WHEN NON TLS ONLY
+//                    if (isTLS) {
+//                        LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, true, messageId,
+//                                "User using TLS Continuing DLR to SMPP TLS.", null);
+//                    } else {
+//                        LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoClientDLRSubmitter", "proccessClientDLR", false, false, true, messageId,
+//                                "CAN NOT FIND MATCHING SESSIONID FOR THE DLR. Continue to SMPP TLS.", null);
+//                    }
+//                    Channel channel = rabbitMqPooler.getChannel(connection);
+//                    channel.queueDeclare(DLRQUEUETLS, true, false, false, null);
+//                    channel.basicPublish("", DLRQUEUETLS, MessageProperties.PERSISTENT_TEXT_PLAIN,
+//                            queueMessage.getBytes());
+//                    LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor",
+//                            "processClientDLR", false, false, true, messageId,
+//                            "queueMessage: " + queueMessage + " Re-Published to "+DLRQUEUETLS+" Successfully!", null);
+//
+//                    channel.close();
                 }
             } catch (Exception e) {
                 LoggingPooler.doLog(logger, "INFO", "BlastMeNeoClientDLRSubmitter", "processDlrQueue", true, false, true, "",

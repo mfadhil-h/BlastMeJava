@@ -60,13 +60,13 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
     private final RedisCommands<String, String> redisCommand;
 
     public BlastmeNeoSMPPIncomingTrxProcessor(String theMessageId, String theSystemId, String theRemoteIpAddress,
-                                              String allMessageIds, String theClientSenderId, String theMsisdn,
-                                              byte[] theShortMessage, byte theDataCoding, String theClientId, Address theMtSourceAddress,
-                                              Address theMtDestinationAddress,
-                                              ClientPropertyPooler theClientPropertyPooler, ClientBalancePooler theClientBalancePooler,
-                                              SMSTransactionOperationPooler theSmsTransactionOperationPooler,
-                                              RabbitMQPooler theRabbitMqPooler, Connection theRabbitMqConnection, RedisPooler theRedisPooler,
-                                              WeakReference<SmppSession> theSessionRef, Logger theLogger) {
+            String allMessageIds, String theClientSenderId, String theMsisdn,
+            byte[] theShortMessage, byte theDataCoding, String theClientId, Address theMtSourceAddress,
+            Address theMtDestinationAddress,
+            ClientPropertyPooler theClientPropertyPooler, ClientBalancePooler theClientBalancePooler,
+            SMSTransactionOperationPooler theSmsTransactionOperationPooler,
+            RabbitMQPooler theRabbitMqPooler, Connection theRabbitMqConnection, RedisPooler theRedisPooler,
+            WeakReference<SmppSession> theSessionRef, Logger theLogger) {
         this.messageId = theMessageId;
         System.out.println("INITIATE msgId " + this.messageId);
         this.systemId = theSystemId;
@@ -109,10 +109,11 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
         this.shortMessage = CharsetUtil.decode(theShortMessage, theCharset);
 
         LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor", "BlastMeNeoSMPPIncomingTrxProcessor",
-                false, false, false, messageId,
+                false, false, true, messageId,
                 "Session ID: " + sessionId + ". Incoming trx - messageId: " + this.messageId + ", clientSenderId: "
                         + this.clientSenderId + ", msisdn: " + this.msisdn +
-                        ", dataCoding" + this.dataCoding + ", bShortMessage: " + Arrays.toString(theShortMessage) + ", charSet: "
+                        ", dataCoding" + this.dataCoding + ", bShortMessage: " + Arrays.toString(theShortMessage)
+                        + ", charSet: "
                         + theCharset + ", shortmessage: " +
                         this.shortMessage + ", clientId: " + this.clientId,
                 null);
@@ -198,13 +199,13 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
     }
 
     private void saveInitialData(String messageId, LocalDateTime receiverDateTime, String batchId, String receiverData,
-                                 String receiverClientResponse,
-                                 String receiverclientIpAddress, LocalDateTime clientResponseDateTime, LocalDateTime trxDateTime,
-                                 String msisdn, String message, String countryCode, String prefix,
-                                 String telecomId, String trxStatus, String receiverType, String clientSenderIdId, String clientSenderId,
-                                 String clientId, String apiUserName,
-                                 double clientUnitPrice, String currency, String messageEncoding, int messageLength, int smsCount,
-                                 String deliveryStatus) {
+            String receiverClientResponse,
+            String receiverclientIpAddress, LocalDateTime clientResponseDateTime, LocalDateTime trxDateTime,
+            String msisdn, String message, String countryCode, String prefix,
+            String telecomId, String trxStatus, String receiverType, String clientSenderIdId, String clientSenderId,
+            String clientId, String apiUserName,
+            double clientUnitPrice, String currency, String messageEncoding, int messageLength, int smsCount,
+            String deliveryStatus) {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMddHHmmssSSS");
 
@@ -217,7 +218,7 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
                     this.allMessageIds);
 
             LoggingPooler.doLog(logger, "DEBUG", "BlastmeSMPPServerNeo - SMPPIncomingTrxProcessor",
-                    "saveInitialData - " + this.sessionId, false, false, false, messageId,
+                    "saveInitialData - " + this.sessionId, false, false, true, messageId,
                     "Successfully save Initial Data to Database.", null);
 
             String[] multiMessageIds = this.allMessageIds.trim().split(",");
@@ -251,7 +252,7 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 
                     redisPooler.redisSetWithExpiry(redisCommand, redisKey, redisVal, expiry);
                     LoggingPooler.doLog(logger, "DEBUG", "BlastmeSMPPServerNeo - SMPPIncomingTrxProcessor",
-                            "saveInitialData - " + this.sessionId, false, false, false, multiMessageId,
+                            "saveInitialData - " + this.sessionId, false, false, true, multiMessageId,
                             "Successfully save Initial Data to Database and REDIS.", null);
                 }
             } else {
@@ -284,13 +285,13 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
 
                 redisPooler.redisSetWithExpiry(redisCommand, redisKey, redisVal, expiry);
                 LoggingPooler.doLog(logger, "DEBUG", "BlastmeSMPPServerNeo - SMPPIncomingTrxProcessor",
-                        "saveInitialData - " + this.sessionId, false, false, false, messageId,
+                        "saveInitialData - " + this.sessionId, false, false, true, messageId,
                         "Successfully save Initial Data to Database and REDIS.", null);
             }
         } catch (Exception e) {
             e.printStackTrace();
             LoggingPooler.doLog(logger, "DEBUG", "BlastmeSMPPServerNeo - SMPPIncomingTrxProcessor",
-                    "saveInitialData - " + this.sessionId, true, false, false, messageId,
+                    "saveInitialData - " + this.sessionId, true, false, true, messageId,
                     "Failed saving initial data. Error occured.", e);
         }
     }
@@ -384,7 +385,7 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
     }
 
     private void sendDeliveryReceipt(SmppSession session, Address mtDestinationAddress, Address mtSourceAddress,
-                                     byte[] shortMessage, byte dataCoding) {
+            byte[] shortMessage, byte dataCoding) {
 
         DeliverSm deliver = new DeliverSm();
         deliver.setEsmClass(SmppConstants.ESM_CLASS_MT_SMSC_DELIVERY_RECEIPT);
@@ -609,9 +610,9 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
             }
 
             /* Check Vendor Whatsapp to change ENCODING sms count change to 1 */
-            String[] vendorWhatsapp = {"ARAN20230314", "ARTP20230319", "ARTP20230126", "ARTP20230207",
+            String[] vendorWhatsapp = { "ARAN20230314", "ARTP20230319", "ARTP20230126", "ARTP20230207",
                     "NATH20230316", "PAIA20220704", "PATP20220704", "PAXT20220704", "SHST20230214", "WAFE21062321",
-                    "WATI20220701", "AR0220230329", "ARTP20210821", "ARTP20230711", "PIXT20240625"};
+                    "WATI20220701", "AR0220230329", "ARTP20210821", "ARTP20230711", "PIXT20240625" };
             LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor", "doProcessTheSMS",
                     false, false, true, messageId,
                     this.systemId + " - routingId: " + clientSenderId + "-" +
@@ -667,7 +668,7 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
                 sendDeliveryReceipt(sessionRef.get(), moSourceAddress, moDestinationAddress,
                         dlrReceipt.toShortMessage().getBytes(), this.dataCoding);
                 LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor",
-                        "doProcessTheSMS - " + this.sessionId, false, false, false, messageId,
+                        "doProcessTheSMS - " + this.sessionId, false, false, true, messageId,
                         "Sending DLR with session: " + sessionRef.get().getConfiguration().getName() + ". DLR: "
                                 + dlrReceipt.toShortMessage(),
                         null);
@@ -703,7 +704,7 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
                 jsonIncoming.put("encoding", messageEncoding);
 
                 LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor",
-                        "doProcessTheSMS - " + this.sessionId, false, false, false, messageId,
+                        "doProcessTheSMS - " + this.sessionId, false, false, true, messageId,
                         "jsonIncoming: " + jsonIncoming, null);
 
                 Channel channel = rabbitMqPooler.getChannel(rabbitMqConnection);
@@ -712,7 +713,7 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
                 channel.basicPublish("", SMSQueueName, MessageProperties.PERSISTENT_TEXT_PLAIN,
                         jsonIncoming.toString().getBytes());
                 LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor",
-                        "doProcessTheSMS - " + this.sessionId, false, false, false, messageId,
+                        "doProcessTheSMS - " + this.sessionId, false, false, true, messageId,
                         "jsonIncoming: " + jsonIncoming + " published SUCCESSfully!", null);
 
                 channel.close();
@@ -721,14 +722,14 @@ class BlastmeNeoSMPPIncomingTrxProcessor implements Runnable {
             e.printStackTrace();
 
             LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor",
-                    "doProcessTheSMS - " + this.sessionId, true, false, false, messageId,
+                    "doProcessTheSMS - " + this.sessionId, true, false, true, messageId,
                     "Failed to process incoming sms message. Error occured.", e);
         }
     }
 
     @Override
     public void run() {
-        LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor", "RUN", false, false, false,
+        LoggingPooler.doLog(logger, "DEBUG", "BlastMeNeoSMPPIncomingTrxProcessor", "RUN", false, false, true,
                 messageId,
                 "Session ID: " + sessionId + ". Processing the SMS.", null);
 

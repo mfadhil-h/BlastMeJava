@@ -32,11 +32,11 @@ public class ClientPropertyPooler {
         // Initiate connection to Postgresql
         try {
             bds = DataSource.getInstance().getBds();
-            LoggingPooler.doLog(logger, "INFO", "ClientPropertyPooler", "ClientPropertyPooler", false, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "ClientPropertyPooler", "ClientPropertyPooler", false, false, true, "",
                     "Database connection is load and initiated.", null);
         } catch (Exception e) {
             e.printStackTrace();
-            LoggingPooler.doLog(logger, "INFO", "ClientPropertyPooler", "ClientPropertyPooler", true, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "ClientPropertyPooler", "ClientPropertyPooler", true, false, true, "",
                     "Failed to load connection to database server. Error occured.", e);
         }
 
@@ -76,7 +76,7 @@ public class ClientPropertyPooler {
                     "jsonClientProperty: " + jsonClientProperty.toString(), null);
         } catch (Exception e) {
             e.printStackTrace();
-            LoggingPooler.doLog(logger, "INFO", "ClientPropertyPooler", "initiateJSONClientProperty", true, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "ClientPropertyPooler", "initiateJSONClientProperty", true, false, true, "",
                     "Failed to intiate jsonSenderIdSMSProperty. Error occured.", e);
         } finally {
             try {
@@ -88,7 +88,7 @@ public class ClientPropertyPooler {
                     statement.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LoggingPooler.doLog(logger, "DEBUG", "ClientPropertyPooler", "initiateJSONClientProperty", true, false, false, "",
+                LoggingPooler.doLog(logger, "DEBUG", "ClientPropertyPooler", "initiateJSONClientProperty", true, false, true, "",
                         "Failed to close query statement.", e);
             }
         }

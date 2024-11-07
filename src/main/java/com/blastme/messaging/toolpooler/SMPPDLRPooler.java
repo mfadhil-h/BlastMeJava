@@ -73,12 +73,12 @@ public class SMPPDLRPooler {
             channelDLR = rabbitMqPooler.getChannel(connDLR);
             channelDRLDelay = rabbitMqPooler.getChannel(connDLRDelay);
 
-            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", false, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", false, false, true, "",
                     "Module SMPPDLRPooler is initiated and ready to serve.", null);
         } catch (Exception e) {
             e.printStackTrace();
 
-            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", true, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", true, false, true, "",
                     "Failed to initiate SMPPDLRPooler. Error occured.", e);
         }
     }
@@ -92,10 +92,10 @@ public class SMPPDLRPooler {
             int impactedRowTrx = statementUpdateTrxData.executeUpdate();
 
             if (impactedRowTrx > 0) {
-                LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "updateTrxData", false, false, false, messageId,
+                LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "updateTrxData", false, false, true, messageId,
                         "Updating transaction data is SUCCESS! Impacted row: " + impactedRowTrx, null);
             } else {
-                LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "updateTrxData", false, false, false, messageId,
+                LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "updateTrxData", false, false, true, messageId,
                         "Updating transaction data is FAILED! Impacted row: " + impactedRowTrx, null);
             }
 
@@ -108,15 +108,15 @@ public class SMPPDLRPooler {
             int impactedRowVendor = statementUpdateTrxVendor.executeUpdate();
 
             if (impactedRowVendor > 0) {
-                LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "updateTrxData", false, false, false, messageId,
+                LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "updateTrxData", false, false, true, messageId,
                         "Updating transaction vendor data is SUCCESS! Impacted row: " + impactedRowVendor, null);
             } else {
-                LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "updateTrxData", false, false, false, messageId,
+                LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "updateTrxData", false, false, true, messageId,
                         "Updating transaction vendor data is FAILED! Impacted row: " + impactedRowVendor, null);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "updateTrxData", true, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "updateTrxData", true, false, true, "",
                     "Failed to update transaction data. Error occured.", e);
         }
     }
@@ -130,21 +130,21 @@ public class SMPPDLRPooler {
             jsonDLR.put("message", message);
             jsonDLR.put("errorCode", statusCode);
             jsonDLR.put("sysSessionId", sysSessionId);
-            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", false, false, false, messageId,
+            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", false, false, true, messageId,
                     "Sending DLR to SMPPServer, jsonDLR: " + jsonDLR, null);
 
             // Update db
             updateTrxData(messageId, statusCode, callbackDateTime, callbackBody);
-            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", false, false, false, messageId,
+            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", false, false, true, messageId,
                     "jsonDLR: " + jsonDLR + " updated to database SUCCESSfully!", null);
 
             channelDLR.queueDeclare(DLRQueueName, true, false, false, null);
             channelDLR.basicPublish("", DLRQueueName, MessageProperties.PERSISTENT_TEXT_PLAIN, jsonDLR.toString().getBytes());
-            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", false, false, false, messageId,
+            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", false, false, true, messageId,
                     "jsonDLR: " + jsonDLR + " published to queue " + DLRQueueName + " SUCCESSfully!", null);
         } catch (Exception e) {
             e.printStackTrace();
-            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", true, false, false, messageId,
+            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", true, false, true, messageId,
                     "Failed to send DLR. Error occured.", e);
         }
     }
@@ -190,7 +190,7 @@ public class SMPPDLRPooler {
             dlr.setText(theSMS);
 
             String receipt0 = dlr.toShortMessage();
-            LoggingPooler.doLog(logger, "DEBUG", "SMPPDLRPooler", "sendReceipt", false, false, false, messageId,
+            LoggingPooler.doLog(logger, "DEBUG", "SMPPDLRPooler", "sendReceipt", false, false, true, messageId,
                     "messageId: " + messageId + ", the DLR: " + receipt0, null);
 
             // Source address is the msidn - dibalik dari sms masuk
@@ -208,7 +208,7 @@ public class SMPPDLRPooler {
             }
 
             theSession.sendRequestPdu(deliver, 10000, false);
-            LoggingPooler.doLog(logger, "DEBUG", "SMPPDLRPooler", "sendReceipt", false, false, false, messageId,
+            LoggingPooler.doLog(logger, "DEBUG", "SMPPDLRPooler", "sendReceipt", false, false, true, messageId,
                     "Sending DLR via sessionId " + theSession + " is OK.", null);
 
             // Save to DB transaction_sms_dlr
@@ -216,7 +216,7 @@ public class SMPPDLRPooler {
             updateDLRTable(messageId, clientId, now, receipt0, status, CharsetUtil.decode(deliver.getShortMessage(), CharsetUtil.CHARSET_GSM), "", "");
         } catch (Exception e) {
             e.printStackTrace();
-            LoggingPooler.doLog(logger, "DEBUG", "SMPPDLRPooler", "sendReceipt", true, false, false, messageId,
+            LoggingPooler.doLog(logger, "DEBUG", "SMPPDLRPooler", "sendReceipt", true, false, true, messageId,
                     "Sending DLR via sessionId " + theSession.toString() + " is FAILED. Error occured.", e);
         }
     }
@@ -228,7 +228,7 @@ public class SMPPDLRPooler {
             Random r = new Random();
 
             delay = delay + r.nextInt(10);
-            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", false, false, false, messageId,
+            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", false, false, true, messageId,
                     "Set delay for DLR: " + delay + " seconds.", null);
 
             JSONObject jsonDLR = new JSONObject();
@@ -238,12 +238,12 @@ public class SMPPDLRPooler {
             jsonDLR.put("message", message);
             jsonDLR.put("errorCode", statusCode);
             jsonDLR.put("sysSessionId", sysSessionId);
-            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", false, false, false, messageId,
+            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", false, false, true, messageId,
                     "Sending DLR to SMPPServer, jsonDLR: " + jsonDLR, null);
 
             // Update db
             updateTrxData(messageId, statusCode, callbackDateTime, callbackBody);
-            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", false, false, false, messageId,
+            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", false, false, true, messageId,
                     "jsonDLR: " + jsonDLR + " updated to database SUCCESSfully!", null);
 
             // Send to message with delay
@@ -260,11 +260,11 @@ public class SMPPDLRPooler {
             channelDRLDelay.queueBind(DLRQueueName, DLRDelayExchange, "");
 
             channelDRLDelay.basicPublish(DLRDelayExchange, "", props.build(), jsonDLR.toString().getBytes());
-            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", false, false, false, messageId,
+            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", false, false, true, messageId,
                     "jsonDLR: " + jsonDLR + " published to queue " + DLRQueueName + " with delay " + delay + " seconds - SUCCESSfully!", null);
         } catch (Exception e) {
             e.printStackTrace();
-            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", true, false, false, messageId,
+            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", true, false, true, messageId,
                     "Failed to send DLR. Error occured.", e);
         }
     }
@@ -287,11 +287,11 @@ public class SMPPDLRPooler {
             channelDRLDelay.queueBind(DLRQueueName, DLRDelayExchange, "");
 
             channelDRLDelay.basicPublish(DLRDelayExchange, "", props.build(), requeueMessage.getBytes());
-            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", false, false, false, messageId,
+            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", false, false, true, messageId,
                     "requeue DLR message: " + requeueMessage + " published to queue " + DLRQueueName + " with delay " + delay + " seconds - SUCCESSfully!", null);
         } catch (Exception e) {
             e.printStackTrace();
-            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", true, false, false, messageId,
+            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "SMPPDLRPooler", true, false, true, messageId,
                     "Failed to send DLR. Error occured.", e);
         }
     }
@@ -310,15 +310,15 @@ public class SMPPDLRPooler {
             int insertDLR = statementInsertTrxDLR.executeUpdate();
 
             if (insertDLR > 0) {
-                LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "updateDLRTable", false, false, false, messageId,
+                LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "updateDLRTable", false, false, true, messageId,
                         "Inserting to DLR Table is success. Impacted row: " + insertDLR, null);
             } else {
-                LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "updateDLRTable", false, false, false, messageId,
+                LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "updateDLRTable", false, false, true, messageId,
                         "Inserting to DLR Table is failed. Impacted row: " + insertDLR, null);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "updateDLRTable", true, false, false, messageId,
+            LoggingPooler.doLog(logger, "INFO", "SMPPDLRPooler", "updateDLRTable", true, false, true, messageId,
                     "Inserting to DLR Table is failed. Error occured.", e);
         }
     }

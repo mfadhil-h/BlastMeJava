@@ -32,9 +32,9 @@ public class TelecomPrefixPooler {
         initiateJSONPrefixProperty();
 
         // Log loaded print large data no needed
-//		LoggingPooler.doLog(logger, "INFO", "TelecomPrefixPooler", "TelecomPrefixPooler", false, false, false, "",
+//		LoggingPooler.doLog(logger, "INFO", "TelecomPrefixPooler", "TelecomPrefixPooler", false, false, true, "",
 //				"Module TelecomPrefixPooler is initiated and ready to serve. jsonClientProperty: " + jsonPrefixProperty.toString(), null);
-        LoggingPooler.doLog(logger, "INFO", "TelecomPrefixPooler", "TelecomPrefixPooler", false, false, false, "",
+        LoggingPooler.doLog(logger, "INFO", "TelecomPrefixPooler", "TelecomPrefixPooler", false, false, true, "",
                 "Module TelecomPrefixPooler is initiated and ready to serve.", null);
     }
 
@@ -48,7 +48,7 @@ public class TelecomPrefixPooler {
             BasicDataSource bds = DataSource.getInstance().getBds(); // bds di sini tidak perlu diclose, karena akan close DataSource yang masih akan dipake oleh aplikasi pemanggil
             connection = bds.getConnection();
             statement = connection.createStatement();
-            LoggingPooler.doLog(logger, "INFO", "TelecomPrefixPooler", "TelecomPrefixPooler", false, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "TelecomPrefixPooler", "TelecomPrefixPooler", false, false, true, "",
                     "Database connection is load and initiated.", null);
 
             String query = "select country_code_and_prefix_id, country_code, prefix, telecom_id, country_code from country_code_prefix where is_active = true";
@@ -71,7 +71,7 @@ public class TelecomPrefixPooler {
                     "jsonPrefxProperty: " + jsonPrefixProperty.toString(), null);
         } catch (Exception e) {
             e.printStackTrace();
-            LoggingPooler.doLog(logger, "INFO", "TelecomPrefixPooler", "initiateJSONPrefixProperty", true, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "TelecomPrefixPooler", "initiateJSONPrefixProperty", true, false, true, "",
                     "Failed to intiate JSONPrefixProperty. Error occured.", e);
         } finally {
             try {
@@ -83,7 +83,7 @@ public class TelecomPrefixPooler {
                     connection.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LoggingPooler.doLog(logger, "INFO", "TelecomPrefixPooler", "initiateJSONPrefixProperty", true, false, false, "",
+                LoggingPooler.doLog(logger, "INFO", "TelecomPrefixPooler", "initiateJSONPrefixProperty", true, false, true, "",
                         "Failed to close query statement.", e);
             }
         }

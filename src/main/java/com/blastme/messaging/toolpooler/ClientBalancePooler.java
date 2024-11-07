@@ -46,15 +46,15 @@ public class ClientBalancePooler {
 
             cstmtDeduction = connection.prepareCall("{ ? = call dofinancialaction(?, ?, ?, ?, ?, ?, ?, ?) }");
 
-            LoggingPooler.doLog(logger, "INFO", "ClientBalancePooler", "ClientBalancePooler", false, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "ClientBalancePooler", "ClientBalancePooler", false, false, true, "",
                     "Database connection is load and initiated.", null);
         } catch (Exception e) {
             e.printStackTrace();
-            LoggingPooler.doLog(logger, "INFO", "ClientBalancePooler", "ClientBalancePooler", true, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "ClientBalancePooler", "ClientBalancePooler", true, false, true, "",
                     "Failed to load connection to database server. Error occured.", e);
         }
 
-        LoggingPooler.doLog(logger, "INFO", "ClientBalancePooler", "ClientBalancePooler", false, false, false, "",
+        LoggingPooler.doLog(logger, "INFO", "ClientBalancePooler", "ClientBalancePooler", false, false, true, "",
                 "Module ClientBalancePooler is initiated and ready to serve.", null);
     }
 
@@ -78,12 +78,12 @@ public class ClientBalancePooler {
             } else {
                 // Record is found - use first one
                 balance = resultSet.getDouble("now_balance");
-                LoggingPooler.doLog(logger, "INFO", "ClientBalancePooler", "getClientBalance", false, false, false, "",
+                LoggingPooler.doLog(logger, "INFO", "ClientBalancePooler", "getClientBalance", false, false, true, "",
                         "clientId: " + clientId + " -> balance: " + String.format("%.5f", balance), null);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LoggingPooler.doLog(logger, "INFO", "ClientBalancePooler", "getClientBalance", true, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "ClientBalancePooler", "getClientBalance", true, false, true, "",
                     "Failed to intiate jsonSenderIdSMSProperty. Error occured.", e);
         } finally {
             try {
@@ -95,7 +95,7 @@ public class ClientBalancePooler {
                     getBalConnection.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LoggingPooler.doLog(logger, "DEBUG", "ClientBalancePooler", "getClientBalance", true, false, false, "",
+                LoggingPooler.doLog(logger, "DEBUG", "ClientBalancePooler", "getClientBalance", true, false, true, "",
                         "Failed to close query statement.", e);
             }
         }
@@ -106,7 +106,7 @@ public class ClientBalancePooler {
     public JSONObject deductClientBalance(String messageId, String clientId, String usageType, double usageValue, String usageBy,
                                           String usageDescription, String businessModel) {
         JSONObject jsonDeduction = new JSONObject();
-        LoggingPooler.doLog(logger, "INFO", "ClientBalancePooler", "deductClientBalance", false, false, false, "",
+        LoggingPooler.doLog(logger, "INFO", "ClientBalancePooler", "deductClientBalance", false, false, true, "",
                 "messageId: " + messageId + ", clientId: " + clientId + ", usageValue: " + usageValue + ", BDValue: " + BigDecimal.valueOf(usageValue), null);
 
         LocalDateTime now = LocalDateTime.now();
@@ -125,7 +125,7 @@ public class ClientBalancePooler {
             cstmtDeduction.execute();
 
             String callResult = cstmtDeduction.getString(1);
-            LoggingPooler.doLog(logger, "INFO", "ClientBalancePooler", "deductClientBalance", false, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "ClientBalancePooler", "deductClientBalance", false, false, true, "",
                     "Deduction callResult: " + callResult + ", cstmtDeduction query: " + cstmtDeduction.toString(), null);
 
             if (Integer.parseInt(callResult) == 1) {
@@ -146,7 +146,7 @@ public class ClientBalancePooler {
                     "Failed to intiate jsonSenderIdSMSProperty. Error occured.", e);
         }
 
-        LoggingPooler.doLog(logger, "INFO", "ClientBalancePooler", "deductClientBalance", false, false, false, "",
+        LoggingPooler.doLog(logger, "INFO", "ClientBalancePooler", "deductClientBalance", false, false, true, "",
                 "ClientBalancePooler jsonDeduction: " + jsonDeduction, null);
 
         return jsonDeduction;

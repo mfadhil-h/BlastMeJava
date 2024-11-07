@@ -34,7 +34,7 @@ public class SMPPEnquiryLinkPooler {
         redisPooler = new RedisPooler();
         redisCommand = redisPooler.redisInitiateConnection();
 
-        LoggingPooler.doLog(logger, "INFO", "SMPPEnquryLinkPooler", "SMPPEnquryLinkPooler", false, false, false, "",
+        LoggingPooler.doLog(logger, "INFO", "SMPPEnquryLinkPooler", "SMPPEnquryLinkPooler", false, false, true, "",
                 "Module SMPPEnquryLinkPooler is initiated and ready to serve.", null);
     }
 

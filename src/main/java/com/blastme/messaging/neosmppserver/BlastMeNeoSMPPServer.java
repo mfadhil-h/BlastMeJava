@@ -27,7 +27,8 @@ import java.util.concurrent.TimeUnit;
 public class BlastMeNeoSMPPServer {
     private static Logger logger;
 
-    private final static int smppPort = 2776;
+//    private final static int smppPort = 2775; // NON-TLS PORT
+    private final static int smppPort = 2776; // TLS PORT
     private final static int smppMaxConnection = 500;
     private final static int smppRequestExpiryTimeout = 30000;
     private final static int smppWindowMonitorInterval = 15000;
@@ -92,13 +93,7 @@ public class BlastMeNeoSMPPServer {
             configuration.setJmxEnabled(true);
 
             // Enable smpp configuration for SSL configuration
-            SslConfiguration sslConfig = new SslConfiguration();
-            sslConfig.setKeyStorePath(Configuration.getJks());
-            sslConfig.setKeyStorePassword(Configuration.getJksPass());
-            sslConfig.setKeyManagerPassword(Configuration.getPrivateKeyCertificate());
-            sslConfig.setTrustStorePath(Configuration.getSslCertificate());
-            sslConfig.setTrustStorePassword(Configuration.getJksPass());
-
+            SslConfiguration sslConfig = getSslConfig();
             configuration.setSslConfiguration(sslConfig);
             configuration.setUseSsl(true);
 
@@ -106,13 +101,28 @@ public class BlastMeNeoSMPPServer {
 
             System.out.println("Starting NEO SMPP server...");
             smppServer.start();
-            System.out.println("NEO SMPP server is started");
+//            System.out.println("NEO SMPP server is started");
+            System.out.println("NEO SMPP TLS server is started");
             System.out.println("SSL/TLS Configuration - KeyStorePath: " + sslConfig.getKeyStorePath());
-            System.out.println("smppServer Configuration: " + smppServer.getConfiguration().toString());
+            System.out.println("smppServer Configuration: " + smppServer.getConfiguration().getSslConfiguration().toString());
         } catch (SmppChannelException e) {
             e.printStackTrace();
             System.exit(-1);
         }
+    }
+
+    private static SslConfiguration getSslConfig() {
+        SslConfiguration sslConfig = new SslConfiguration();
+        sslConfig.setKeyStorePath(Configuration.getPkcs12());
+        sslConfig.setKeyStoreType("PKCS12");
+        sslConfig.setKeyStorePassword(Configuration.getSslPass());
+        sslConfig.setKeyManagerPassword(Configuration.getSslPass());
+        sslConfig.setTrustStorePath(Configuration.getJks());
+        sslConfig.setTrustStorePassword(Configuration.getSslPass());
+        sslConfig.setValidateCerts(true);
+        sslConfig.setValidatePeerCerts(true);
+        sslConfig.setSslSessionTimeout();
+        return sslConfig;
     }
 
     public static void main(String[] args) {
@@ -134,7 +144,7 @@ public class BlastMeNeoSMPPServer {
         private Tool tool;
 
         private final static ScheduledThreadPoolExecutor execClientDLR = new ScheduledThreadPoolExecutor(5);
-        private final static ScheduledThreadPoolExecutor execClientMOWAMessage = new ScheduledThreadPoolExecutor(1);
+//        private final static ScheduledThreadPoolExecutor execClientMOWAMessage = new ScheduledThreadPoolExecutor(1);
 
         public NeoSmppServerHandler() {
             try {
@@ -167,7 +177,7 @@ public class BlastMeNeoSMPPServer {
 
                 // Run executor DLR Client
                 System.out.println("Executing CLIENTDLRSUBMITTER is disabled it will handled by smppneo without tls.");
-//                execClientDLR.schedule(new BlastMeNeoClientDLRSubmitter(), 10, TimeUnit.SECONDS);
+                execClientDLR.schedule(new BlastMeNeoClientDLRSubmitter(), 10, TimeUnit.SECONDS);
 //                execClientMOWAMessage.schedule(new BlastmeNeoSMPPWAIncomingSubmitter(), 10, TimeUnit.SECONDS);
             } catch (Exception e) {
                 e.printStackTrace();

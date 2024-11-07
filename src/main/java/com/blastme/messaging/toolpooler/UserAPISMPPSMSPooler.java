@@ -74,13 +74,13 @@ public class UserAPISMPPSMSPooler {
             }
 
             // Log loaded print large data no needed
-//    		LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", false, false, false, "",
+//    		LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", false, false, true, "",
 //    				"jsonSysIdAccess: " + jsonSysIdAccess.toString(), null);
             LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", false, false, false, "",
                     "jsonSysIdAccess and jsonClientIdToAccess are initiated and ready", null);
         } catch (Exception e) {
             e.printStackTrace();
-            LoggingPooler.doLog(logger, "INFO", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", true, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", true, false, true, "",
                     "Failed to intiate jsonSenderIdSMSProperty. Error occured.", e);
         } finally {
             try {
@@ -92,7 +92,7 @@ public class UserAPISMPPSMSPooler {
                     connection.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", true, false, false, "",
+                LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", true, false, true, "",
                         "Failed to close query statement.", e);
             }
         }
@@ -111,7 +111,7 @@ public class UserAPISMPPSMSPooler {
             connection = bds.getConnection();
             statement = connection.createStatement();
 
-            String query = "select username, password, client_id, registered_ip_address from user_api where access_type = 'NEOSMPPSMS' and is_active = true";
+            String query = "select username, password, client_id, registered_ip_address, is_tls from user_api where access_type = 'NEOSMPPSMS' and is_active = true";
 
             resultSet = statement.executeQuery(query);
 
@@ -122,7 +122,8 @@ public class UserAPISMPPSMSPooler {
                 jsonDetail.put("password", resultSet.getString("password"));
                 jsonDetail.put("ipAddress", resultSet.getString("registered_ip_address"));
                 jsonDetail.put("clientId", resultSet.getString("client_id"));
-                System.out.println(resultSet.getString("username"));
+                jsonDetail.put("isTLS", resultSet.getBoolean("is_tls"));
+//                System.out.println(resultSet.getString("username"));
 
                 jsonNeoSysIdAccess.put(resultSet.getString("username"), jsonDetail);
 
@@ -130,13 +131,13 @@ public class UserAPISMPPSMSPooler {
             }
 
             // Log loaded print large data no needed
-//    		LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", false, false, false, "",
+//    		LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", false, false, true, "",
 //    				"jsonSysIdAccess: " + jsonSysIdAccess.toString(), null);
             LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", false, false, false, "",
                     "jsonNeoSysIdAccess and jsonNeoClientIdToAccess are initiated and ready.", null);
         } catch (Exception e) {
             e.printStackTrace();
-            LoggingPooler.doLog(logger, "INFO", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", true, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", true, false, true, "",
                     "Failed to intiate jsonSenderIdSMSProperty. Error occured.", e);
         } finally {
             try {
@@ -148,14 +149,14 @@ public class UserAPISMPPSMSPooler {
                     connection.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", true, false, false, "",
+                LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", true, false, true, "",
                         "Failed to close query statement.", e);
             }
         }
     }
 
     public JSONObject isValidSysId(String systemId, String password, String ipAddress) {
-        LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", false, false, false, "",
+        LoggingPooler.doLog(logger, "DEBUG", "UserAPISMPPSMSPooler", "loadJSONSMPPSysId", false, false, true, "",
                 "TO VALIDATE: systemId: " + systemId + ", password: " + password + ", ipAddress: " + ipAddress + " -> JSONSYSIDACCESS: " + jsonSysIdAccess.toString(), null);
 
         JSONObject jsonReturn = new JSONObject();
@@ -230,5 +231,17 @@ public class UserAPISMPPSMSPooler {
         }
 
         return clientId;
+    }
+
+    public boolean getIsTLSUser(String sysId) {
+        boolean isTLS = false;
+
+        if (jsonNeoSysIdAccess.has(sysId)) {
+            JSONObject jsonData = jsonNeoSysIdAccess.getJSONObject(sysId);
+
+            isTLS = jsonData.getBoolean("isTLS");
+        }
+
+        return isTLS;
     }
 }

@@ -33,7 +33,7 @@ public class RedisPooler {
         redisHost = Configuration.getRedisHost();
         redisPort = Configuration.getRedisPort();
 
-        LoggingPooler.doLog(logger, "INFO", "RedisPooler", "RedisPooler", false, false, false, "", "REDISPOOLER is initiated", null);
+        LoggingPooler.doLog(logger, "INFO", "RedisPooler", "RedisPooler", false, false, true, "", "REDISPOOLER is initiated", null);
     }
 
     public RedisCommands<String, String> redisInitiateConnection() {
@@ -41,7 +41,7 @@ public class RedisPooler {
             // Do nothing, it is open and connected anyway
             RedisCommands<String, String> syncCommands = redisConnection.sync();
 
-            LoggingPooler.doLog(logger, "DEBUG", "RedisPooler", "RedisPooler", false, false, false, "",
+            LoggingPooler.doLog(logger, "DEBUG", "RedisPooler", "RedisPooler", false, false, true, "",
                     "redisConnection is ALREADY initiated. Do nothing to re-initiate.", null);
 
             return syncCommands;
@@ -51,7 +51,7 @@ public class RedisPooler {
             redisConnection = redisClient.connect();
             RedisCommands<String, String> syncCommands = redisConnection.sync();
 
-            LoggingPooler.doLog(logger, "DEBUG", "RedisPooler", "RedisPooler", false, false, false, "",
+            LoggingPooler.doLog(logger, "DEBUG", "RedisPooler", "RedisPooler", false, false, true, "",
                     "redisConnection is NOT initiated yet. Initiating it!", null);
 
             return syncCommands;
@@ -66,7 +66,7 @@ public class RedisPooler {
         syncCommands.set(key, value);
 
 
-        LoggingPooler.doLog(logger, "DEBUG", "RedisPooler", "RedisPooler", false, false, false, "",
+        LoggingPooler.doLog(logger, "DEBUG", "RedisPooler", "RedisPooler", false, false, true, "",
                 "Successfully set redis - key: " + key + ", value: " + value, null);
     }
 
@@ -74,14 +74,14 @@ public class RedisPooler {
         syncCommands.set(key, value);
         syncCommands.expire(key, secondsExpiry);
 
-        LoggingPooler.doLog(logger, "DEBUG", "RedisPooler", "RedisPooler", false, false, false, "",
+        LoggingPooler.doLog(logger, "DEBUG", "RedisPooler", "RedisPooler", false, false, true, "",
                 "Successfully set redis - key: " + key + ", value: " + value + ", expiry: " + secondsExpiry, null);
     }
 
     public void redisDel(RedisCommands<String, String> syncCommands, String key) {
         syncCommands.del(key);
 
-        LoggingPooler.doLog(logger, "DEBUG", "RedisPooler", "RedisPooler", false, false, false, "",
+        LoggingPooler.doLog(logger, "DEBUG", "RedisPooler", "RedisPooler", false, false, true, "",
                 "Successfully delete redis - key: " + key, null);
     }
 
@@ -94,7 +94,7 @@ public class RedisPooler {
             result = "";
         }
 
-        LoggingPooler.doLog(logger, "DEBUG", "RedisPooler", "RedisPooler", false, false, false, "",
+        LoggingPooler.doLog(logger, "DEBUG", "RedisPooler", "RedisPooler", false, false, true, "",
                 "Successfully read redis - key: " + key, null);
         return result;
     }
@@ -105,7 +105,7 @@ public class RedisPooler {
         result = syncCommands.get(key);
         syncCommands.del(key);
 
-        LoggingPooler.doLog(logger, "DEBUG", "RedisPooler", "RedisPooler", false, false, false, "",
+        LoggingPooler.doLog(logger, "DEBUG", "RedisPooler", "RedisPooler", false, false, true, "",
                 "Successfully read and delete redis - key: " + key, null);
 
         return result;

@@ -26,9 +26,10 @@ public class SMSTransactionOperationPooler {
     public SMSTransactionOperationPooler() {
         // Load Configuration
         new Configuration();
-//		LoggerContext context = (org.apache.logging.log4j.core.LoggerContext) LogManager.getContext(false);
-//		File file = new File(Configuration.getLogConfigPath());
-//		context.setConfigLocation(file.toURI());
+        // LoggerContext context = (org.apache.logging.log4j.core.LoggerContext)
+        // LogManager.getContext(false);
+        // File file = new File(Configuration.getLogConfigPath());
+        // context.setConfigLocation(file.toURI());
 
         // Setup logger
         logger = LogManager.getLogger("POOLER");
@@ -45,11 +46,11 @@ public class SMSTransactionOperationPooler {
 
     // Function ini dipakai oleh SMPP server untuk save initial data
     public void saveInitialSMPPData(String messageId, LocalDateTime receiverDateTime, String batchId,
-                                    String receiverData, String receiverClientResponse, String receiverclientIpAddress,
-                                    LocalDateTime clientResponseDateTime, LocalDateTime trxDateTime, String msisdn, String message,
-                                    String countryCode, String prefix, String telecomId, String trxStatus,
-                                    String receiverType, String clientSenderIdId, String clientSenderId, String clientId, String apiUserName,
-                                    double clientUnitPrice, String currency, String messageEncoding, int messageLength, int smsCount) {
+            String receiverData, String receiverClientResponse, String receiverclientIpAddress,
+            LocalDateTime clientResponseDateTime, LocalDateTime trxDateTime, String msisdn, String message,
+            String countryCode, String prefix, String telecomId, String trxStatus,
+            String receiverType, String clientSenderIdId, String clientSenderId, String clientId, String apiUserName,
+            double clientUnitPrice, String currency, String messageEncoding, int messageLength, int smsCount) {
         Connection connection = null;
         Statement statement = null;
         // Statement statementReceiver = null;
@@ -199,10 +200,10 @@ public class SMSTransactionOperationPooler {
     }
 
     public void saveTransactionVendor(String messageId, String vendorId, LocalDateTime vendorHitDateTime,
-                                      String vendorHitRequest,
-                                      LocalDateTime vendorRespDateTime, String vendorHitResponse, String vendorMessageId,
-                                      LocalDateTime routerToTransceiverDateTime,
-                                      String vendorTrxStatus) {
+            String vendorHitRequest,
+            LocalDateTime vendorRespDateTime, String vendorHitResponse, String vendorMessageId,
+            LocalDateTime routerToTransceiverDateTime,
+            String vendorTrxStatus) {
         Connection connection = null;
         Statement statement = null;
 
@@ -524,7 +525,7 @@ public class SMSTransactionOperationPooler {
             result = Utils.escapeLiteral(null, toQuote, true).toString();
             result = result.replace("'", "'");
         } catch (SQLException e) {
-            LoggingPooler.doLog(logger, "INFO", "SMSTransactionOperationPooler", "quote", true, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "SMSTransactionOperationPooler", "quote", true, false, true, "",
                     "Failed to quote Postgresql string. Error occured.", e);
         }
 
@@ -532,7 +533,7 @@ public class SMSTransactionOperationPooler {
     }
 
     public void saveTransactionDLR(String messageId, String clientId, LocalDateTime dlrDateTime, String dlrBody,
-                                   String dlrStatus, String dlrPushTo) {
+            String dlrStatus, String dlrPushTo) {
         Connection connection = null;
         Statement statement = null;
         // Statement statementReceiver = null;
@@ -778,7 +779,7 @@ public class SMSTransactionOperationPooler {
     }
 
     public void saveSMPPBindAttempt(String bindId, LocalDateTime trxDateTime, String apiUserName,
-                                    String remoteIpAddress, String attemptActivity, String attemptResponse) {
+            String remoteIpAddress, String attemptActivity, String attemptResponse) {
         Connection connection = null;
         Statement statement = null;
         // Statement statementReceiver = null;
@@ -798,12 +799,12 @@ public class SMSTransactionOperationPooler {
 
         } catch (SQLException se) {
             se.printStackTrace();
-            LoggingPooler.doLog(logger, "INFO", "SMSTransactionOperationPooler", "saveSMPPAttempt", true, false, false,
+            LoggingPooler.doLog(logger, "INFO", "SMSTransactionOperationPooler", "saveSMPPAttempt", true, false, true,
                     "",
                     "Failed to intiate jsonSenderIdSMSProperty. Error occured.", se);
         } catch (Exception e) {
             e.printStackTrace();
-            LoggingPooler.doLog(logger, "INFO", "SMSTransactionOperationPooler", "saveSMPPAttempt", true, false, false,
+            LoggingPooler.doLog(logger, "INFO", "SMSTransactionOperationPooler", "saveSMPPAttempt", true, false, true,
                     "",
                     "Failed to intiate jsonSenderIdSMSProperty. Error occured.", e);
         } finally {

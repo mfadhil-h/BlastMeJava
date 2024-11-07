@@ -32,9 +32,9 @@ public class SenderIdSMSPooler {
         initiateJsonSenderIdSMSProperty();
 
         // Log loaded print large data no needed
-//		LoggingPooler.doLog(logger, "INFO", "SMSSenderIdPooler", "SMSSenderIdPooler", false, false, false, "",
+//		LoggingPooler.doLog(logger, "INFO", "SMSSenderIdPooler", "SMSSenderIdPooler", false, false, true, "",
 //				"Module SMSSenderIdPooler is initiated and ready to serve. jsonSenderIdSMSProperty: " + jsonSenderIdSMSProperty.toString(), null);
-        LoggingPooler.doLog(logger, "INFO", "SMSSenderIdPooler", "SMSSenderIdPooler", false, false, false, "",
+        LoggingPooler.doLog(logger, "INFO", "SMSSenderIdPooler", "SMSSenderIdPooler", false, false, true, "",
                 "Module SMSSenderIdPooler is initiated and ready to serve.", null);
     }
 
@@ -48,7 +48,7 @@ public class SenderIdSMSPooler {
             BasicDataSource bds = DataSource.getInstance().getBds(); // bds di sini tidak perlu diclose, karena akan close DataSource yang masih akan dipake oleh aplikasi pemanggil
             connection = bds.getConnection();
             statement = connection.createStatement();
-            LoggingPooler.doLog(logger, "INFO", "SMSSenderIdPooler", "SMSSenderIdPooler", false, false, false, "",
+            LoggingPooler.doLog(logger, "INFO", "SMSSenderIdPooler", "SMSSenderIdPooler", false, false, true, "",
                     "Database connection is load and initiated.", null);
 
             String query = "select client_sender_id_id, sender_id, client_id, masking from client_senderid_sms where is_active = true";
@@ -66,7 +66,7 @@ public class SenderIdSMSPooler {
                 jsonSenderIdSMSProperty.put(resultSet.getString("client_sender_id_id").trim(), jsonDetail);
             }
 
-//    		LoggingPooler.doLog(logger, "DEBUG", "SMSSenderIdPooler", "initiateJsonSenderIdSMSProperty", false, false, false, "",
+//    		LoggingPooler.doLog(logger, "DEBUG", "SMSSenderIdPooler", "initiateJsonSenderIdSMSProperty", false, false, true, "",
 //    				"jsonSenderIdSMSProperty: " + jsonSenderIdSMSProperty.toString(), null);
         } catch (Exception e) {
             e.printStackTrace();
@@ -82,7 +82,7 @@ public class SenderIdSMSPooler {
                     connection.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LoggingPooler.doLog(logger, "DEBUG", "SMSSenderIdPooler", "initiateJsonSenderIdSMSProperty", true, false, false, "",
+                LoggingPooler.doLog(logger, "DEBUG", "SMSSenderIdPooler", "initiateJsonSenderIdSMSProperty", true, false, true, "",
                         "Failed to close query statement.", e);
             }
         }
